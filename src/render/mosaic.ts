@@ -27,12 +27,15 @@ function keyOf(spec: MosaicSpec): string {
 }
 
 function canvasFor(imageData: ImageData): HTMLCanvasElement | OffscreenCanvas {
-  const canvas =
-    typeof OffscreenCanvas !== 'undefined'
-      ? new OffscreenCanvas(imageData.width, imageData.height)
-      : Object.assign(document.createElement('canvas'), { width: imageData.width, height: imageData.height });
-  const ctx = canvas.getContext('2d');
-  ctx?.putImageData(imageData, 0, 0);
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(imageData.width, imageData.height);
+    canvas.getContext('2d')?.putImageData(imageData, 0, 0);
+    return canvas;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  canvas.getContext('2d')?.putImageData(imageData, 0, 0);
   return canvas;
 }
 

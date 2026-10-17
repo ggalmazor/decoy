@@ -1,7 +1,7 @@
 import { readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import type { Plugin } from 'vite';
-import { appVersion } from './vite-version';
+import { appVersion } from './vite-version.ts';
 
 // Writes dist/sw.js after the build with the exact list of files Vite emitted. The app shell (HTML, JS,
 // CSS, fonts, the pdf.js worker) is precached so the page works with the network off once it has loaded;

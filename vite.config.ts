@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
-import { cspPlugin } from './scripts/vite-csp';
-import { pdfjsAssetsPlugin } from './scripts/vite-pdfjs-assets';
-import { serviceWorkerPlugin } from './scripts/vite-service-worker';
-import { versionPlugin } from './scripts/vite-version';
+import { cspPlugin } from './scripts/vite-csp.ts';
+import { pdfjsAssetsPlugin } from './scripts/vite-pdfjs-assets.ts';
+import { serviceWorkerPlugin } from './scripts/vite-service-worker.ts';
+import { versionPlugin } from './scripts/vite-version.ts';
 
 export default defineConfig({
   oxc: {
