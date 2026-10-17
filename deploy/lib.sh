@@ -157,3 +157,24 @@ bump_kind_for_fragments() {
     done <<< "$fragments"
     echo patch
 }
+
+# The github-pages environment that Pages creates admits deployments from main only, so a v<version> tag
+# is turned away before the deploy job runs a single step, and with no log to say why. Checked before
+# anything is tagged, so a release that could not deploy is never published. Needs gh and read access;
+# when either is missing, or the environment does not exist yet, there is nothing to check against.
+check_tag_can_deploy() {
+    local tag="$1" repo policies custom
+    command -v gh >/dev/null 2>&1 || return 0
+    repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)" || return 0
+    custom="$(gh api "repos/${repo}/environments/github-pages" --jq '.deployment_branch_policy.custom_branch_policies // false' 2>/dev/null)" || return 0
+    [[ "$custom" == "true" ]] || return 0
+    policies="$(gh api "repos/${repo}/environments/github-pages/deployment-branch-policies" --jq '.branch_policies[] | select(.type == "tag") | .name' 2>/dev/null)" || return 0
+    local pattern
+    while IFS= read -r pattern; do
+        # shellcheck disable=SC2053
+        [[ -n "$pattern" && "$tag" == $pattern ]] && return 0
+    done <<< "$policies"
+    die "The github-pages environment of ${repo} does not allow the tag ${tag} to deploy. Add a tag rule, once, with an admin account:
+    gh api -X POST repos/${repo}/environments/github-pages/deployment-branch-policies -f name='v*' -f type=tag
+or in Settings > Environments > github-pages > Deployment branches and tags. Nothing was published."
+}

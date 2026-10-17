@@ -79,7 +79,14 @@ The site is a plain static folder (`dist/`), so it can be served from anywhere. 
 
 1. **DNS:** add a `CNAME` record for `decoy` pointing at `ggalmazor.github.io`. `public/CNAME` already contains `decoy.ggalmazor.com`, so every deploy keeps the custom domain.
 2. **GitHub Pages:** in the repository settings, under _Pages_, set _Source_ to **GitHub Actions**, enter `decoy.ggalmazor.com` as the custom domain, wait for the DNS check, and tick **Enforce HTTPS** once the certificate is issued.
-3. **First release:** push `main`, then run `mise run release` (the version starts at 0.0.0, so the first release is 0.1.0; pass `--major` for 1.0.0).
+3. **Let tags deploy:** the `github-pages` environment that Pages creates only admits deployments from `main`, and a release is a `v*` tag. Under _Settings > Environments > github-pages > Deployment branches and tags_, add a **Tag** rule for `v*`, or run, with an admin account:
+
+   ```sh
+   gh api -X POST repos/ggalmazor/decoy/environments/github-pages/deployment-branch-policies -f name='v*' -f type=tag
+   ```
+
+   `deploy/release.sh` checks this rule before it tags and refuses to release while it is missing.
+4. **First release:** push `main`, then run `mise run release` (the version starts at 0.0.0, so the first release is 0.1.0; pass `--major` for 1.0.0).
 
 ## Credits
 

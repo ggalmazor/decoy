@@ -65,6 +65,7 @@ for attempt in 1 2 3; do
     VERSION="$(NEXT_VERSION_DIR="$QUEUE" "${REPO_ROOT}/deploy/next-version.sh" $FIELD_ARG)"
     TAG="v${VERSION}"
     git ls-remote --exit-code --tags origin "${TAG}" >/dev/null 2>&1 && die "${TAG} already exists on origin; the tags and package.json disagree. Look before retrying."
+    check_tag_can_deploy "$TAG"
 
     echo "==> Cutting ${VERSION} from $(git rev-parse --short HEAD), folding ${#FRAGMENTS[@]} fragment(s)"
     python3 "${REPO_ROOT}/deploy/fold-changelog.py" "$VERSION" "${FRAGMENTS[@]}"
@@ -103,7 +104,9 @@ if [[ "$WAIT" == "yes" ]] && command -v gh >/dev/null 2>&1; then
         sleep 3
     done
     [[ -n "$RUN_ID" ]] || die "No Deploy run appeared for ${TAG} within a minute. Check the Actions tab."
-    gh run watch "$RUN_ID" --exit-status --interval 15 >/dev/null
+    gh run watch "$RUN_ID" --exit-status --interval 15 >/dev/null \
+        || die "The Deploy run for ${TAG} failed: https://github.com/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/actions/runs/${RUN_ID}
+${TAG} is on origin. Fix the cause, then re-run that workflow from the Actions tab (workflow_dispatch) or push a fix and release again."
     echo "==> ${SITE_URL} is serving ${VERSION}"
 else
     echo "==> Tagged ${TAG}; the Deploy workflow will publish it to ${SITE_URL}"

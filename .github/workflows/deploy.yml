@@ -25,19 +25,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
       # The tag and package.json must agree. If they do not, the site would report a version the tag never
-      # named, and every deploy verification against /version.json would fail with no obvious cause.
-      - name: Check the tag matches package.json
-        if: github.event_name == 'push'
+      # named, and every deploy verification against /version.json would fail with no obvious cause. The
+      # declared version is also what the deploy job verifies against: a workflow_dispatch run has no tag,
+      # only a ref name like "main".
+      - name: Read the version and check it against the tag
+        id: version
         run: |
           DECLARED="$(node -p "require('./package.json').version")"
-          TAG="${GITHUB_REF_NAME#v}"
-          if [ "$DECLARED" != "$TAG" ]; then
-            echo "Tag says ${TAG} but package.json says ${DECLARED}." >&2
-            exit 1
+          echo "version=${DECLARED}" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME#v}"
+            if [ "$DECLARED" != "$TAG" ]; then
+              echo "Tag says ${TAG} but package.json says ${DECLARED}." >&2
+              exit 1
+            fi
           fi
 
       - uses: actions/setup-node@v4
@@ -61,6 +68,9 @@ jobs:
         with:
           path: dist
 
+  # The github-pages environment that Pages creates only admits deployments from main. A tag has to be
+  # allowed explicitly (a "v*" tag rule on the environment), or this job fails before its first step with
+  # no log at all. deploy/release.sh checks that rule before it tags.
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -73,8 +83,9 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Verify the live version
+        env:
+          EXPECTED: ${{ needs.build.outputs.version }}
         run: |
-          EXPECTED="${GITHUB_REF_NAME#v}"
           for attempt in $(seq 1 20); do
             LIVE="$(curl -fsS --max-time 10 "https://decoy.ggalmazor.com/version.json?nocache=${attempt}" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || true)"
             if [ "$LIVE" = "$EXPECTED" ]; then
