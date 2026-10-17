@@ -552,11 +552,18 @@ async function cmdDemo() {
   console.log(`DECOY export:                      ${b.blocks} blocks, ${b.matches}`);
   console.log(`   Depix output: ${decoyOut}`);
   console.log('');
-  console.log('Read the outputs side by side: Depix should reconstruct glyphs of the secret from the plain');
   console.log(
-    'pixelation and find nothing to reconstruct in the DECOY export, whose blocks are not averages',
+    'Read the two Depix outputs side by side, zoomed. "Straight" matches are blocks with exactly one',
   );
-  console.log(`of any text in the search image. Everything is in ${OUT_DIR}.`);
+  console.log(
+    'candidate in the search image; "multiple" matches are averaged, which is where the mush comes from.',
+  );
+  console.log(
+    'Whatever Depix makes of the plain pixelation, it is working from the secret. In the DECOY export the',
+  );
+  console.log(
+    `blocks are not averages of any text in any font, so nothing of the secret can appear. Files: ${OUT_DIR}`,
+  );
   openImage(plainOut);
   openImage(decoyOut);
 }
