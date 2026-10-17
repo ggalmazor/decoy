@@ -511,6 +511,8 @@
 }
 
 .closing__title {
+  flex: 1 1 60%;
+  min-width: 0;
   max-width: 14em;
 }
 
