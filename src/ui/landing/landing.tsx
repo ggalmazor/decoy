@@ -333,6 +333,9 @@ export function Landing() {
         <footer class="band__inner footer">
           <span>DECOY runs entirely in your browser.</span>
           <span>
+            © 2026 <a href="https://ggalmazor.com">Guillermo Gutierrez Almazor</a>
+          </span>
+          <span>
             <a href={REPO}>Source</a> · <a href={`${REPO}/blob/main/LICENSE`}>MIT licence</a> · v
             {__DECOY_VERSION__}
           </span>
