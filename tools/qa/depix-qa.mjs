@@ -9,6 +9,7 @@
 //   mise run qa -- search-image --height 24 [--chars ..]  De Bruijn search image in Courier Prime 700 at DECOY's size
 //   mise run qa -- depix <pixelated.png> <search.png>     run Depix (and its block detector) on a cutout
 //   mise run qa -- attack <export.png|export.pdf>         find every mosaic in an export and Depix each one
+//                     [--detect claude]                   ask the claude CLI for the boxes instead of pixel analysis
 //
 // Everything that draws text goes through headless Chromium against the built site, so the search image is
 // rendered by the same engine, font, and size DECOY itself uses: the most favourable conditions an attacker
@@ -519,6 +520,60 @@ async function decoyThrough(page, imageBuffer, box, { mood } = {}) {
   };
 }
 
+// Asks Claude, through the claude CLI and the user's own login, for the pixelated rectangles in an image.
+// Restricted to reading files, so the only thing it can do is look. Its boxes are approximate and are
+// snapped to the mosaic's outline afterwards.
+function claudeBoxes(imagePath, size) {
+  try {
+    execFileSync('claude', ['--version'], { stdio: 'ignore' });
+  } catch {
+    die('--detect claude needs the claude CLI on PATH (https://docs.anthropic.com/en/docs/claude-code).');
+  }
+  const prompt =
+    `The image at ${imagePath} is ${size.w}x${size.h} pixels. Read it. Find every pixelated (mosaic) rectangle, ` +
+    'that is, every area made of flat square blocks covering text. Reply with only a JSON array of objects ' +
+    '{x,y,w,h} in image pixel coordinates, one per rectangle, nothing else. Reply [] if there is none.';
+  log('Asking claude for the pixelated rectangles');
+  const result = spawnSync(
+    'claude',
+    [
+      '-p',
+      '--output-format',
+      'json',
+      '--allowedTools',
+      'Read',
+      '--permission-mode',
+      'bypassPermissions',
+      prompt,
+    ],
+    { encoding: 'utf8', cwd: ROOT },
+  );
+  if (result.status !== 0) die(`claude failed:\n${result.stderr || result.stdout}`);
+  let text;
+  try {
+    text = String(JSON.parse(result.stdout).result ?? '');
+  } catch {
+    text = result.stdout;
+  }
+  const match = /\[[\s\S]*\]/.exec(text);
+  if (!match) die(`claude did not return a JSON array. It said:\n${text}`);
+  let boxes;
+  try {
+    boxes = JSON.parse(match[0]);
+  } catch {
+    die(`claude returned something that is not JSON:\n${match[0]}`);
+  }
+  return boxes
+    .map((b) => ({ x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.w), h: Math.round(b.h) }))
+    .filter((b) => [b.x, b.y, b.w, b.h].every(Number.isFinite) && b.w > 0 && b.h > 0)
+    .map((b) => ({
+      x: Math.max(0, b.x),
+      y: Math.max(0, b.y),
+      w: Math.min(size.w - Math.max(0, b.x), b.w),
+      h: Math.min(size.h - Math.max(0, b.y), b.h),
+    }));
+}
+
 // --- Commands ----------------------------------------------------------------------------------------------
 
 async function cmdSetup() {
@@ -615,8 +670,10 @@ async function cmdAttack() {
   const [file] = positional;
   if (!file)
     die(
-      'usage: attack <export.png|.jpg|.webp|.pdf> [--page N] [--box x,y,w,h] [--block 4] [--height N] [--chars ..] [--font ..] [--px N] [--scale N]',
+      'usage: attack <export.png|.jpg|.webp|.pdf> [--page N] [--box x,y,w,h] [--detect pixels|claude] [--block 4] [--height N] [--chars ..] [--font ..] [--px N] [--scale N]',
     );
+  const detect = flags.detect ?? 'pixels';
+  if (!['pixels', 'claude'].includes(detect)) die('--detect must be pixels or claude');
   const path = resolve(file);
   if (!existsSync(path)) die(`${file} does not exist`);
   const bytes = readFileSync(path);
@@ -634,22 +691,37 @@ async function cmdAttack() {
     for (const p of pages) {
       if (flags.page && Number(flags.page) !== p.n) continue;
       const size = await loadImage(page, p.png);
+      const pagePng = outPath(`${stem}-p${p.n}.png`);
       if (p.native) {
         log(
           `Page ${p.n}: ${size.w}×${size.h}, rendered at the embedded image's size (scale ${p.scale.toFixed(3)})`,
         );
-        writeFileSync(outPath(`${stem}-p${p.n}.png`), p.png);
+        writeFileSync(pagePng, p.png);
       } else if (mime === 'application/pdf') {
         log(
           `Page ${p.n}: ${size.w}×${size.h}, no single embedded image; rendered at scale ${p.scale.toFixed(3)}`,
         );
-        writeFileSync(outPath(`${stem}-p${p.n}.png`), p.png);
+        writeFileSync(pagePng, p.png);
       } else {
         log(`Image: ${size.w}×${size.h}`);
+        if (detect === 'claude') writeFileSync(pagePng, p.png);
       }
-      const regions = flags.box
-        ? [{ ...parseBox(flags.box), blocks: '?', block: '?' }]
-        : await page.evaluate((m) => window.__qa.findMosaics(m), minBlock);
+      let regions;
+      if (flags.box) {
+        regions = [{ ...parseBox(flags.box), blocks: '?', block: '?' }];
+      } else if (detect === 'claude') {
+        regions = [];
+        for (const guess of claudeBoxes(pagePng, size)) {
+          const margin = Math.max(4, Math.round(Math.max(guess.w, guess.h) * 0.1));
+          const snapped = await page.evaluate(({ b, m }) => window.__qa.snap(b, m), { b: guess, m: margin });
+          log(
+            `claude said ${guess.x},${guess.y},${guess.w},${guess.h}; snapped to ${snapped.x},${snapped.y},${snapped.w},${snapped.h}`,
+          );
+          regions.push({ ...snapped, blocks: '?', block: '?' });
+        }
+      } else {
+        regions = await page.evaluate((m) => window.__qa.findMosaics(m), minBlock);
+      }
       if (!regions.length) {
         log(`Page ${p.n}: no mosaic found (pass --box x,y,w,h to point at one, or a smaller --block)`);
         continue;

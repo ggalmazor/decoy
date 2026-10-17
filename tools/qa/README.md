@@ -30,12 +30,14 @@ How to read it: Depix prints `[N straight matches | M multiple matches]` for eac
 ## Attacking a real export
 
 ```sh
-mise run qa:attack -- <export.png|.jpg|.webp|.pdf> [--page N] [--box x,y,w,h] [--block 4] [--height N] [--chars ..] [--font ..] [--px N] [--scale N]
+mise run qa:attack -- <export.png|.jpg|.webp|.pdf> [--page N] [--box x,y,w,h] [--detect pixels|claude] [--block 4] [--height N] [--chars ..] [--font ..] [--px N] [--scale N]
 ```
 
 One argument: the file DECOY exported. The tool finds every mosaic on every page itself, cuts each one out, renders a search image at the cut-out's height, and runs Depix on it. For a PDF, each page is rendered with pdf.js at the pixel size of the bitmap it carries (DECOY's pages are image-only), so the mosaic's blocks come out exactly as exported; `--scale` overrides that. Outputs per page and region go to `tmp/qa/<name>-p<page>-r<n>*.png`, with a `-regions.png` overview of the page showing what was found, numbered.
 
-Mosaics are found without any knowledge of where the boxes were: a mosaic is the only thing on a document page made of flat rectangles at least `--block` pixels wide, not the paper colour, sitting edge to edge on a grid. Each block's interior is a run of identical pixels; those are grown back into blocks, clustered when they touch, and a cluster is kept when it has at least six blocks and most of them share one size. Antialiased glyphs rarely have flat interiors this large, and a filled shape is a single rectangle, so both drop out. If something is missed (a very small mosaic, or a cell size under 4), lower `--block` or point at it with `--box`; if something is picked up that is not a mosaic, the overview shows it and its Depix output is noise.
+`--detect claude` asks Claude for the rectangles instead, through the `claude` CLI and your own login (it may only read files, and each page is one model call, which costs money). Its boxes are approximate, so each is snapped to the mosaic outline under it the way `crop` does. It is the second opinion for an image the pixel detector cannot read, such as a JPEG or a rescaled screenshot; on DECOY's own exports both find the same boxes.
+
+By default mosaics are found without any knowledge of where the boxes were: a mosaic is the only thing on a document page made of flat rectangles at least `--block` pixels wide, not the paper colour, sitting edge to edge on a grid. Each block's interior is a run of identical pixels; those are grown back into blocks, clustered when they touch, and a cluster is kept when it has at least six blocks and most of them share one size. Antialiased glyphs rarely have flat interiors this large, and a filled shape is a single rectangle, so both drop out. If something is missed (a very small mosaic, or a cell size under 4), lower `--block` or point at it with `--box`; if something is picked up that is not a mosaic, the overview shows it and its Depix output is noise.
 
 ## Pieces
 
