@@ -631,6 +631,16 @@
     flex-basis: 100%;
   }
 
+  .topbar__tools {
+    order: 2;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  .topbar__export {
+    margin-left: auto;
+  }
+
   .topbar__name {
     max-width: 60vw;
   }

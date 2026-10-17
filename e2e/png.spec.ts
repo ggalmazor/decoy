@@ -31,7 +31,7 @@ test('boxing a region of a PNG replaces only that region in the export', async (
   const original = readFileSync(FIXTURES + 'page.png');
   const result = await comparePng(page, original, exported, BOX);
   expect(result.sameSize).toBe(true);
-  expect(result.outsideChanged).toBe(0);
+  expect(result.outsideChanged, JSON.stringify(result.bbox)).toBe(0);
   expect(result.insideChanged / result.inside).toBeGreaterThan(0.5);
   await expect(page.getByText('Leaked responsibly.')).toBeVisible();
 });

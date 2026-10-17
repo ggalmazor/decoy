@@ -24,14 +24,13 @@ for (const [name, width, height, fixture, box] of [
 ]) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
   await page.goto(base);
-  await page.getByTestId('file-input').setInputFiles(fixture);
+  await page.getByTestId('file-input').first().setInputFiles(fixture);
   const canvas = page.getByTestId('page-canvas');
   await canvas.waitFor();
   await page.waitForTimeout(400);
   if (name === 'editor-desktop') await page.locator('.thumb').nth(1).click();
   const bounds = await canvas.boundingBox();
-  const cssW = await canvas.evaluate((c) => c.width / (window.devicePixelRatio || 1));
-  const scale = bounds.width / cssW;
+  const scale = bounds.width / Number(await canvas.getAttribute('data-page-width'));
   const x0 = bounds.x + box.x * scale;
   const y0 = bounds.y + box.y * scale;
   await page.mouse.move(x0, y0);
@@ -40,7 +39,10 @@ for (const [name, width, height, fixture, box] of [
   await page.mouse.up();
   await page.waitForTimeout(300);
   await page.screenshot({ path: `e2e/output/shots/${name}-pending.png` });
-  await page.getByRole('button', { name: 'Apply decoy' }).first().click();
+  await page
+    .getByRole('button', { name: /^Apply/ })
+    .first()
+    .click();
   await page.waitForTimeout(200);
   await page.screenshot({ path: `e2e/output/shots/${name}-applied.png` });
   await page.getByRole('button', { name: 'Export' }).click();

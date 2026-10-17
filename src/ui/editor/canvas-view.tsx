@@ -293,7 +293,13 @@ export function CanvasView() {
           onPointerCancel={onPointerUp}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <canvas ref={canvasRef} class="canvas-composite" data-testid="page-canvas" />
+          <canvas
+            ref={canvasRef}
+            class="canvas-composite"
+            data-testid="page-canvas"
+            data-page-width={current.width}
+            data-page-height={current.height}
+          />
           <div class="canvas-overlay" aria-hidden="true">
             {s.currentDecoys.value.map((decoy, i) =>
               decoy.id === active?.id ? null : (

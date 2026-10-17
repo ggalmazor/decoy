@@ -53,6 +53,7 @@ test('an unsupported file is refused with the copy deck line', async ({ page }) 
   await page.goto('/');
   await page
     .getByTestId('file-input')
+    .first()
     .setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') });
   await expect(page.getByRole('alert')).toContainText('We only redact the classics.');
 });
