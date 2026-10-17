@@ -1,4 +1,3 @@
-import { PDFDocument } from 'pdf-lib';
 import type { Decoy, DecoyPages } from '../core/model';
 import { buildMosaic } from '../render/mosaic';
 import type { LoadedDocument, Page } from './types';
@@ -99,6 +98,8 @@ export async function buildPdf(
   decoys: DecoyPages,
   options: ExportOptions,
 ): Promise<Uint8Array> {
+  // Loaded on demand: pdf-lib is 200 kB that only a PDF export needs.
+  const { PDFDocument } = await import('pdf-lib');
   const out = await PDFDocument.create({ updateMetadata: false });
   const photographic = doc.kind === 'image' && doc.mime === 'image/jpeg';
   for (const page of doc.pages) {
