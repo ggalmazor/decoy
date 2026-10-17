@@ -333,8 +333,8 @@ export function Landing() {
         <footer class="band__inner footer">
           <span>DECOY runs entirely in your browser.</span>
           <span>
-            <a href={REPO}>Source</a> · <a href={`${REPO}/blob/main/LICENSE`}>MIT licence</a> · v
-            {__DECOY_VERSION__}
+            <a href="/depix.html">Try to break it</a> · <a href={REPO}>Source</a> ·{' '}
+            <a href={`${REPO}/blob/main/LICENSE`}>MIT licence</a> · v{__DECOY_VERSION__}
           </span>
         </footer>
       </section>

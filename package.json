@@ -1,6 +1,6 @@
 {
   "name": "decoy",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
   "description": "Client-side redaction that paints a pixelated decoy phrase over the secret instead of pixelating the secret.",
   "type": "module",
