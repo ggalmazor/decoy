@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DECOY — pixelate the lie, not the secret</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Courier+Prime:wght@400;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#E8DCC2}
+a{color:#17140F}a:hover{color:#9E1912}
+</style>
+</helmet>
+<div style="background-color: #E8DCC2; background-image: repeating-linear-gradient(0deg, rgba(23,20,15,0.035) 0px, rgba(23,20,15,0.035) 1px, transparent 1px, transparent 4px); color: #17140F; font-family: 'IBM Plex Mono', 'Courier New', monospace; font-size: 16px; line-height: 1.55">
+
+<header style="max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 32px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #17140F; min-height: 44px">
+<span aria-hidden="true" style="display: grid; grid-template-columns: repeat(3, 9px); grid-template-rows: repeat(3, 9px)">
+<span style="background: #17140F"></span><span style="background: #8A8173"></span><span style="background: #C9BFAE"></span>
+<span style="background: #4A4338"></span><span style="background: #17140F"></span><span style="background: #8A8173"></span>
+<span style="background: #C9BFAE"></span><span style="background: {{accent}}"></span><span style="background: #4A4338"></span>
+</span>
+<span style="font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 30px; letter-spacing: 0.06em; line-height: 1">DECOY</span>
+</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em">
+<a href="#why">Why</a>
+<a href="#how">How it works</a>
+<a href="#moods">Moods</a>
+<a href="#faq">FAQ</a>
+<a href="Editor.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; background: #17140F; color: #F6F1E6; text-decoration: none; font-weight: 600; box-shadow: 4px 4px 0 {{accent}}">Open a file</a>
+</nav>
+</header>
+
+<section style="max-width: 1240px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 32px) 112px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 64px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 28px; min-width: 0">
+<p style="margin: 0; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px">
+<span style="background: #17140F; color: #F6F1E6; padding: 3px 10px">File no. 0451</span>
+<span>Redaction that talks back</span>
+</p>
+<h1 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: clamp(64px, 7.6vw, 112px); line-height: 0.92; text-transform: uppercase; letter-spacing: 0.005em; display: flex; flex-direction: column; gap: 6px">
+<span>Pixelate</span>
+<span>the lie,</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px">not the <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">secret.</span><dc-import name="Mosaic" text="nope" w="150" h="92" cell="23" ink="#17140F" paper="#E8DCC2" label="the word secret, pixelated" hint-size="150px,92px"></dc-import></span>
+</h1>
+<p style="margin: 0; font-size: 18px; line-height: 1.6; max-width: 34em; text-wrap: pretty">Pixelated text can be un-pixelated. So DECOY never blurs what is really there: it paints over your password, IBAN or phone number with a pixelated insult cut to fit the box. Whoever “enhances” it gets told, in perfect detail, to fuck off.</p>
+<div style="border: 2px dashed #17140F; background: rgba(246,241,230,0.75); padding: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
+<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M12 16V4"></path><path d="M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path></svg>
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<strong style="font-size: 17px; font-weight: 600">Drop a PDF, PNG or JPG here</strong>
+<span style="font-size: 14px; color: #3F392F">or paste a screenshot. It never leaves this tab.</span>
+</div>
+<a href="Editor.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; background: #17140F; color: #F6F1E6; text-decoration: none; font-weight: 600; box-shadow: 4px 4px 0 {{accent}}">Choose a file</a>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 28px; font-size: 14px">
+<li style="display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>No uploads, no server</li>
+<li style="display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>Works with the Wi-Fi off</li>
+<li style="display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>Exports flattened</li>
+</ul>
+</div>
+
+<div style="position: relative; min-width: 0; padding: 24px 0 0">
+<div style="background: #F6F1E6; border-top: 12px solid #17140F; box-shadow: 14px 16px 0 rgba(23,20,15,0.14); padding: clamp(20px, 5vw, 36px) clamp(20px, 5vw, 36px) 44px; transform: rotate(-1.2deg); font-family: 'Courier Prime', 'Courier New', monospace; font-size: 17px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase">
+<span>Account handover</span>
+<span>Page 1 of 1</span>
+</div>
+<div style="font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 34px; line-height: 1.05; text-transform: uppercase">Confidential — do not forward</div>
+<div style="height: 1px; background: #17140F"></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px"><span style="flex: 0 0 130px">Username</span><span>m.etxeberria</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px"><span style="flex: 0 0 130px">Password</span><dc-import name="Mosaic" text="you thought this was a password?" w="300" h="22" cell="{{cell}}" label="Pixelated decoy" hint-size="300px,22px"></dc-import></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px"><span style="flex: 0 0 130px">Recovery</span><dc-import name="Mosaic" text="fuck off" w="96" h="22" cell="{{cell}}" label="Pixelated decoy" hint-size="96px,22px"></dc-import></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px"><span style="flex: 0 0 130px">IBAN</span><dc-import name="Mosaic" text="nothing to see here, nerd" w="290" h="22" cell="{{cell}}" label="Pixelated decoy" hint-size="290px,22px"></dc-import></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px"><span style="flex: 0 0 130px">Door PIN</span><dc-import name="Mosaic" text="lol no" w="72" h="22" cell="{{cell}}" label="Pixelated decoy" hint-size="72px,22px"></dc-import></div>
+<p style="margin: 6px 0 0; font-size: 15px">Hand these to nobody. Shred after reading.</p>
+</div>
+<div aria-hidden="true" style="position: absolute; right: 4px; top: 0; transform: rotate(8deg); border: 4px solid {{accent}}; color: {{accent}}; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 40px; line-height: 1.1; padding: 2px 16px; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(246,241,230,0.4)">Decoyed</div>
+<div style="margin: 36px 0 0 28px; display: flex; gap: 12px; align-items: flex-start; color: {{accent}}; font-size: 14px; line-height: 1.5; max-width: 440px">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true" style="flex: none"><path d="M20 21C20 12 14 7 5 7"></path><path d="M9 3L5 7l4 4"></path></svg>
+<span>Run the password box through any depixelizer. It will proudly recover: <strong style="font-weight: 600">“you thought this was a password?”</strong></span>
+</div>
+</div>
+</section>
+
+<section id="why" style="background: #17140F; color: #F6F1E6">
+<div style="max-width: 1240px; margin: 0 auto; padding: 104px clamp(16px, 4vw, 32px); display: flex; flex-direction: column; gap: 56px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 32px 64px; align-items: end">
+<h2 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: clamp(44px, 5.6vw, 78px); line-height: 0.98; text-transform: uppercase">Pixelation is a <span style="display: inline-block; line-height: 1; background: {{accent}}; color: #FFFFFF; padding: 0.04em 0.12em 0">puzzle</span>, not a lock.</h2>
+<p style="margin: 0; font-size: 16px; line-height: 1.7; color: #E3DACA; text-wrap: pretty">A mosaic block is just the average colour of the pixels beneath it. Render guesses in the same font, pixelate them the same way, keep whichever matches: that is all a depixelizer does, and short secrets like passwords and PINs are exactly what it is best at. DECOY takes the puzzle off the table. The pixels in the box come from a different sentence.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 32px">
+
+<div style="background: #F6F1E6; color: #17140F; padding: 32px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h3 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: 30px; text-transform: uppercase; letter-spacing: 0.02em">Plain pixelation</h3>
+<span style="font-size: 13px; color: #3F392F">what everyone does</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #3F392F">1 · Under the box</span><span style="font-family: 'Courier Prime', 'Courier New', monospace; font-weight: 700; font-size: 20px">Summer2026!</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #3F392F">2 · What you share</span><dc-import name="Mosaic" text="Summer2026!" w="160" h="28" cell="{{cell}}" label="Pixelated real password" hint-size="160px,28px"></dc-import></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #3F392F">3 · What they recover</span><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="font-family: 'Courier Prime', 'Courier New', monospace; font-weight: 700; font-size: 20px">Summer2026!</span><span style="background: {{accent}}; color: #FFFFFF; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 10px">Leaked</span></span></div>
+</div>
+
+<div style="background: #F6F1E6; color: #17140F; padding: 32px; display: flex; flex-direction: column; gap: 22px; outline: 4px solid {{accent}}; outline-offset: -4px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+<h3 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: 30px; text-transform: uppercase; letter-spacing: 0.02em">With DECOY</h3>
+<span style="font-size: 13px; color: #3F392F">what you should do</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #3F392F">1 · Under the box</span><span style="font-family: 'Courier Prime', 'Courier New', monospace; font-weight: 700; font-size: 20px; text-decoration: line-through; text-decoration-thickness: 3px">Summer2026!</span><span style="font-size: 13px; color: #3F392F">discarded before anything is drawn</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #3F392F">2 · What you share</span><dc-import name="Mosaic" text="nice try, enhance harder" w="320" h="28" cell="{{cell}}" label="Pixelated decoy" hint-size="320px,28px"></dc-import></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #3F392F">3 · What they recover</span><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px"><span style="font-family: 'Courier Prime', 'Courier New', monospace; font-weight: 700; font-size: 20px">nice try, enhance harder</span><span style="background: #17140F; color: #F6F1E6; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 10px">Deserved</span></span></div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section id="how" style="max-width: 1240px; margin: 0 auto; padding: 104px clamp(16px, 4vw, 32px); display: flex; flex-direction: column; gap: 48px">
+<h2 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: clamp(44px, 5.6vw, 78px); line-height: 0.98; text-transform: uppercase">Four steps. Zero uploads.</h2>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 24px">
+<li style="border-top: 4px solid #17140F; padding-top: 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 64px; line-height: 1; color: {{accent}}">01</span>
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Open it here</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #2E2922">Drop a PDF, PNG or JPG, or paste a screenshot. Your browser reads it straight from disk. There is no server to send it to.</p>
+</li>
+<li style="border-top: 4px solid #17140F; padding-top: 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 64px; line-height: 1; color: {{accent}}">02</span>
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Box the secret</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #2E2922">Drag over a password, an IBAN, a phone number. DECOY measures the box and works out how many characters fit in it.</p>
+</li>
+<li style="border-top: 4px solid #17140F; padding-top: 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 64px; line-height: 1; color: {{accent}}">03</span>
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Pick a mood, reroll</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #2E2922">Decoys are generated to the size of the box, so the mosaic looks like it belongs there. Reroll until it is perfect, or type your own.</p>
+</li>
+<li style="border-top: 4px solid #17140F; padding-top: 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-size: 64px; line-height: 1; color: {{accent}}">04</span>
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Export it flattened</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: #2E2922">The page is re-drawn as an image with the real pixels gone. No hidden text layer, no metadata, nothing left to un-blur.</p>
+</li>
+</ol>
+</section>
+
+<section id="moods" style="background: #F6F1E6">
+<div style="max-width: 1240px; margin: 0 auto; padding: 104px clamp(16px, 4vw, 32px); display: flex; flex-direction: column; gap: 48px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 24px 64px; align-items: end">
+<h2 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: clamp(44px, 5.6vw, 78px); line-height: 0.98; text-transform: uppercase">Pick a mood. Reroll till it fits.</h2>
+<p style="margin: 0; font-size: 16px; line-height: 1.7; color: #2E2922; text-wrap: pretty">Every decoy is built from phrase templates and trimmed to the width of your box, so the mosaic has the right rhythm for the line it sits on. Profanity is one switch away from off, for the documents your boss will see.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr)); gap: 24px">
+
+<div style="border: 2px solid #17140F; background: #FFFCF4; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><h3 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: 30px; text-transform: uppercase">Rude</h3><span style="background: {{accent}}; color: #FFFFFF; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 8px">Profanity</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="fuck off" w="110" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="110px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “fuck off”</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="none of your business" w="230" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="230px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “none of your business”</span></div>
+</div>
+
+<div style="border: 2px solid #17140F; background: #FFFCF4; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><h3 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: 30px; text-transform: uppercase">Smug</h3><span style="background: #17140F; color: #F6F1E6; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 8px">Default</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="you thought this was a password?" w="230" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="230px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “you thought this was a password?”</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="enhance harder, detective" w="230" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="230px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “enhance harder, detective”</span></div>
+</div>
+
+<div style="border: 2px solid #17140F; background: #FFFCF4; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><h3 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: 30px; text-transform: uppercase">Corporate</h3><span style="border: 2px solid #17140F; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 1px 6px">Work-safe</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="per my last email: no" w="230" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="230px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “per my last email: no”</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="let's take this offline" w="230" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="230px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “let’s take this offline”</span></div>
+</div>
+
+<div style="border: 2px solid #17140F; background: #FFFCF4; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><h3 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: 30px; text-transform: uppercase">Wholesome</h3><span style="border: 2px solid #17140F; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; padding: 1px 6px">Work-safe</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="go drink some water" w="210" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="210px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “go drink some water”</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><dc-import name="Mosaic" text="you're doing great, sweetie" w="230" h="24" cell="{{cell}}" paper="#FFFCF4" label="Pixelated decoy" hint-size="230px,24px"></dc-import><span style="font-size: 13px; color: #3F392F">decodes to “you’re doing great, sweetie”</span></div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section id="faq" style="max-width: 1240px; margin: 0 auto; padding: 104px clamp(16px, 4vw, 32px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 40px 64px; align-items: start">
+<h2 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: clamp(44px, 5.6vw, 78px); line-height: 0.98; text-transform: uppercase">Questions, asked suspiciously</h2>
+<div style="display: flex; flex-direction: column">
+<div style="border-top: 2px solid #17140F; padding: 22px 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Does my file get uploaded?</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.65; color: #2E2922">No. DECOY is a static page. Files are opened with the browser’s File API, drawn onto a canvas and exported from that canvas. Load it once and it keeps working with the network unplugged.</p>
+</div>
+<div style="border-top: 2px solid #17140F; padding: 22px 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Can anyone recover what I covered?</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.65; color: #2E2922">Not from the export. The box is filled from the decoy text alone, so the original pixels never reach the mosaic. PDFs are flattened to images, so no text layer survives underneath either.</p>
+</div>
+<div style="border-top: 2px solid #17140F; border-bottom: 2px solid #17140F; padding: 22px 0; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 18px; font-weight: 600">Where do the insults come from?</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.65; color: #2E2922">Phrase templates, filled in and trimmed until they fit the box. Pick a mood, switch profanity off, or write your own line.</p>
+</div>
+</div>
+</section>
+
+<section style="background: #17140F; color: #F6F1E6">
+<div style="max-width: 1240px; margin: 0 auto; padding: 96px clamp(16px, 4vw, 32px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 32px">
+<h2 style="margin: 0; font-family: Anton, Impact, 'Arial Narrow', sans-serif; font-weight: 400; font-size: clamp(44px, 5.6vw, 78px); line-height: 0.98; text-transform: uppercase; max-width: 14em">Keep the secret. Send the insult.</h2>
+<a href="Editor.dc.html" style="display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; background: #F6F1E6; color: #17140F; text-decoration: none; font-weight: 600; font-size: 17px; box-shadow: 5px 5px 0 {{accent}}">Open a file</a>
+</div>
+<footer style="max-width: 1240px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 32px) 32px; border-top: 1px solid #4A4338; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: #D8CFBF">
+<span>DECOY runs entirely in your browser.</span>
+<span>[SOURCE LINK] · [LICENSE]</span>
+</footer>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#C8231B","options":["#C8231B","#D4570B","#1F4FD1","#17140F"]},"cell":{"editor":"int","default":7,"min":4,"max":14,"unit":"px"},"$preview":{"width":1440,"height":4100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#C8231B',
+      cell: this.props.cell ?? 7
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+/* DECOY design tokens — "redacted-dossier punk".
+   Self-hosted fonts (no third-party requests). Paths are relative to design/. */
+
+@font-face {
+  font-family: 'Anton';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../design/fonts/anton-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../design/fonts/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../design/fonts/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../design/fonts/ibm-plex-mono-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Courier Prime';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../design/fonts/courier-prime-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Courier Prime';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../../design/fonts/courier-prime-latin-700-normal.woff2') format('woff2');
+}
+
+:root {
+  /* Grounds */
+  --manila: #e8dcc2; /* page ground */
+  --paper: #f6f1e6; /* documents, panels */
+  --paper-bright: #fffcf4; /* cards, inputs, export preview */
+  --backdrop: #5a5246; /* behind modal dialogs */
+
+  /* Ink */
+  --ink: #17140f; /* text, borders, dark bands */
+  --ink-2: #2e2922; /* body copy on light grounds */
+  --ink-3: #3f392f; /* captions, labels (AA on manila & paper) */
+  --on-dark: #f6f1e6; /* text on ink */
+  --on-dark-2: #e3daca; /* secondary text on ink */
+
+  /* Lines */
+  --rule-strong: #17140f;
+  --rule: #b7ad9c;
+  --rule-soft: #dcd2bf;
+
+  /* Accent — classified red; white text on it */
+  --accent: #c8231b;
+  --accent-hover: #9e1912;
+  --on-accent: #ffffff;
+
+  /* Type */
+  --font-display: 'Anton', Impact, 'Arial Narrow', sans-serif; /* uppercase headings, stamps, numbers */
+  --font-ui: 'IBM Plex Mono', 'Courier New', monospace; /* UI and body */
+  --font-doc: 'Courier Prime', 'Courier New', Courier, monospace; /* document text + decoys */
+
+  --text-xs: 11px; /* tags, uppercase labels (letter-spacing .12em) */
+  --text-sm: 13px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --display-sm: 30px; /* card titles */
+  --display-md: 44px; /* dialog titles */
+  --display-lg: clamp(44px, 5.6vw, 78px); /* section headings */
+  --display-xl: clamp(64px, 8.4vw, 124px); /* hero */
+
+  /* Space (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 104px;
+
+  /* Shape — square corners everywhere; depth = hard offset shadows */
+  --radius: 0;
+  --border: 2px solid var(--ink);
+  --shadow-button: 4px 4px 0 var(--accent);
+  --shadow-paper: 14px 16px 0 rgba(23, 20, 15, 0.14);
+  --shadow-dialog: 16px 18px 0 rgba(23, 20, 15, 0.35);
+  --ruled: repeating-linear-gradient(
+    0deg,
+    rgba(23, 20, 15, 0.035) 0px,
+    rgba(23, 20, 15, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+
+  --target: 44px; /* minimum touch target */
+  --content-max: 1240px;
+}

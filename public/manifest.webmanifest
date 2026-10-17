@@ -1,0 +1,10 @@
+{
+  "name": "DECOY",
+  "short_name": "DECOY",
+  "description": "Redaction that talks back. Runs entirely in your browser.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E8DCC2",
+  "theme_color": "#17140F",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

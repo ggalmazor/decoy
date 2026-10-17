@@ -1,0 +1,51 @@
+[tools]
+node = "22"
+
+[tasks.dev]
+description = "Start the Vite dev server"
+run = "npm run dev"
+
+[tasks.build]
+description = "Build the static site into dist/"
+run = "npm run build"
+
+[tasks.preview]
+description = "Serve the built site from dist/"
+run = "npm run preview"
+
+[tasks.lint]
+description = "ESLint and Prettier check"
+run = "npm run lint"
+
+[tasks.typecheck]
+description = "tsc --noEmit"
+run = "npm run typecheck"
+
+[tasks.test]
+description = "Vitest unit tests for src/core and src/doc"
+run = "npm test"
+
+[tasks."test:e2e"]
+description = "Playwright smoke tests against a production build"
+run = "npm run test:e2e"
+
+[tasks.check]
+description = "Everything CI runs: lint, typecheck, unit tests, build, e2e"
+run = "npm run check"
+
+# Merge and release tasks. Every one of them is safe to run from several sessions at once: they share a
+# lock and work in a merge-queue worktree, never in the checkout that has main. Deploys happen when
+# release.sh pushes a v<version> tag; see .github/workflows/deploy.yml and the "Release and deploy"
+# section of AGENTS.md.
+
+[tasks.merge]
+description = "Merge a branch into main, verify it with the full suite, and push main"
+run = "deploy/merge.sh"
+
+[tasks.release]
+description = "Cut the next version from main, fold changelog.d, tag it, and let the tag deploy"
+run = "deploy/release.sh"
+
+[tasks.next-version]
+description = "Print the version the next release will get"
+run = "deploy/next-version.sh"

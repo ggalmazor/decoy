@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mosaic block</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: {{w}}px; height: {{h}}px; flex: none; display: grid; grid-template-columns: repeat({{cols}}, minmax(0, 1fr)); grid-template-rows: repeat({{rows}}, minmax(0, 1fr)); overflow: hidden; background: {{paper}}; color: #17140F" role="img" aria-label="{{label}}">
+<sc-for list="{{cells}}" as="c" hint-placeholder-count="24">
+<div style="background: {{c.bg}}"></div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"text":{"editor":"text","default":"you thought this was a password?"},"w":{"editor":"int","default":400,"min":8,"max":4000,"unit":"px"},"h":{"editor":"int","default":40,"min":8,"max":800,"unit":"px"},"cell":{"editor":"int","default":8,"min":3,"max":40,"unit":"px"},"ink":{"editor":"color","default":"#17140F"},"paper":{"editor":"color","default":"#F6F1E6"},"label":{"editor":null,"default":""},"$preview":{"width":400,"height":40}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    try {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => { this._key = null; this.forceUpdate(); });
+      }
+    } catch (e) {}
+  }
+  hex(s, f) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(s || '').trim());
+    const v = m ? parseInt(m[1], 16) : f;
+    return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+  }
+  build(text, w, h, cell, ink, paper) {
+    const key = [text, w, h, cell, ink, paper].join('|');
+    if (this._key === key) return this._out;
+    const cols = Math.max(1, Math.round(w / cell));
+    const rows = Math.max(1, Math.round(h / cell));
+    const dark = new Array(cols * rows).fill(0);
+    let drawn = false;
+    try {
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      const g = cv.getContext('2d', { willReadFrequently: true });
+      g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
+      const fam = '"Courier Prime", "Courier New", Courier, monospace';
+      let size = Math.round(h * 0.82);
+      g.font = '700 ' + size + 'px ' + fam;
+      const tw = g.measureText(text).width;
+      if (tw > w - 4) { size = Math.max(6, size * (w - 4) / tw); g.font = '700 ' + size + 'px ' + fam; }
+      g.fillStyle = '#000'; g.textBaseline = 'middle';
+      g.fillText(text, 2, h / 2 + 1);
+      const d = g.getImageData(0, 0, w, h).data;
+      for (let y = 0; y < h; y++) {
+        const r = Math.min(rows - 1, Math.floor(y * rows / h));
+        for (let x = 0; x < w; x++) {
+          const c = Math.min(cols - 1, Math.floor(x * cols / w));
+          dark[r * cols + c] += 1 - d[(y * w + x) * 4] / 255;
+        }
+      }
+      drawn = true;
+    } catch (e) { drawn = false; }
+    let seed = 7;
+    for (const ch of text) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const area = (w / cols) * (h / rows);
+    const span = Math.min(1, text.length * 0.6 * h * 0.82 / w);
+    let max = 0;
+    for (let i = 0; i < dark.length; i++) {
+      if (drawn) dark[i] = dark[i] / area;
+      else dark[i] = (i % cols) < cols * span ? rnd() * 0.6 : 0;
+      if (dark[i] > max) max = dark[i];
+    }
+    const a = this.hex(ink, 0x17140f);
+    const b = this.hex(paper, 0xf6f1e6);
+    const cells = dark.map((v) => {
+      let t = max > 0 ? Math.min(1, (v / max) * 0.9) : 0;
+      t = Math.max(0, Math.min(1, t + (rnd() - 0.5) * 0.06));
+      const mix = (k) => Math.round(b[k] + (a[k] - b[k]) * t);
+      return { bg: 'rgb(' + mix(0) + ',' + mix(1) + ',' + mix(2) + ')' };
+    });
+    this._key = key;
+    this._out = { cols: cols, rows: rows, cells: cells };
+    return this._out;
+  }
+  renderVals() {
+    const p = this.props;
+    const text = String(p.text ?? 'you thought this was a password?');
+    const w = Math.max(8, Math.round(Number(p.w ?? 400) || 400));
+    const h = Math.max(8, Math.round(Number(p.h ?? 40) || 40));
+    const cell = Math.max(3, Math.round(Number(p.cell ?? 8) || 8));
+    const ink = p.ink ?? '#17140F';
+    const paper = p.paper ?? '#F6F1E6';
+    const out = this.build(text, w, h, cell, ink, paper);
+    return {
+      w: w, h: h, cols: out.cols, rows: out.rows, cells: out.cells, paper: paper,
+      label: p.label || 'Pixelated text'
+    };
+  }
+}
+</script>
+</body>
+</html>

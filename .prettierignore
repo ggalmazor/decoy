@@ -1,0 +1,9 @@
+node_modules
+dist
+design
+public/pdfjs
+test-results
+playwright-report
+e2e/fixtures
+package-lock.json
+CHANGELOG.md

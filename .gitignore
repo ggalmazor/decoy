@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+e2e/output/
+.DS_Store
+*.log
+.env
+.idea/
+.vscode/
