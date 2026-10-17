@@ -27,6 +27,16 @@ mise run qa -- demo [--secret 'Summer2026!'] [--block 8] [--height 24] [--mood r
 
 How to read it: Depix prints `[N straight matches | M multiple matches]` for each cutout, and writes an image where every block is replaced by the search-image pixels it matched (the average of them when several did). Open `tmp/qa/demo-plain-depix.png` and `tmp/qa/demo-decoy-depix.png` side by side, zoomed. On the plain pixelation Depix finds candidates for every block, but with Courier Prime at these sizes almost none is unique (`0 straight matches` is typical at 24 px and still at 40 px), so the output is an average of candidates rather than a clean reconstruction; Depix was written for larger editor text where blocks are more distinctive. On the DECOY export the blocks are not the average of any text in any font (they are a normalised, capped, jittered rendering of a different sentence), so most of what Depix matches is coincidence, and nothing of the secret can appear because nothing of it is in the pixels.
 
+## Attacking a real export
+
+```sh
+mise run qa:attack -- <export.png|.jpg|.webp|.pdf> [--page N] [--box x,y,w,h] [--block 4] [--height N] [--chars ..] [--font ..] [--px N] [--scale N]
+```
+
+One argument: the file DECOY exported. The tool finds every mosaic on every page itself, cuts each one out, renders a search image at the cut-out's height, and runs Depix on it. For a PDF, each page is rendered with pdf.js at the pixel size of the bitmap it carries (DECOY's pages are image-only), so the mosaic's blocks come out exactly as exported; `--scale` overrides that. Outputs per page and region go to `tmp/qa/<name>-p<page>-r<n>*.png`, with a `-regions.png` overview of the page showing what was found, numbered.
+
+Mosaics are found without any knowledge of where the boxes were: a mosaic is the only thing on a document page made of flat rectangles at least `--block` pixels wide, not the paper colour, sitting edge to edge on a grid. Each block's interior is a run of identical pixels; those are grown back into blocks, clustered when they touch, and a cluster is kept when it has at least six blocks and most of them share one size. Antialiased glyphs rarely have flat interiors this large, and a filled shape is a single rectangle, so both drop out. If something is missed (a very small mosaic, or a cell size under 4), lower `--block` or point at it with `--box`; if something is picked up that is not a mosaic, the overview shows it and its Depix output is noise.
+
 ## Pieces
 
 ```sh
@@ -38,7 +48,7 @@ mise run qa -- depix <pixelated.png> <search.png> [--average linear|gammacorrect
 
 `crop` snaps a hand-drawn box to the mosaic under it: block boundaries are luma steps and flat paper has none, so the first and last steps on each axis are the mosaic's outline. Pass `--no-snap` to cut exactly what you typed. Depix's block detector merges neighbouring blocks of identical colour and drops pure black and pure white ones, so a cutout with blank rows or partial blocks at its edges hides blocks from it; the demo trims its box to the ink and to whole blocks for that reason.
 
-To attack a real export: `crop` the box, make a `search-image` with `--height` equal to the cut-out's height (the font size follows from it), then `depix` the two. If you know the original document's font, render the search image with `--font` and `--px` instead and Depix will look for the real text; it will not find it, because nothing of it is in the pixels.
+`attack` is these three steps for every mosaic it finds. By hand: `crop` the box, make a `search-image` with `--height` equal to the cut-out's height (the font size follows from it), then `depix` the two. If you know the original document's font, render the search image with `--font` and `--px` instead and Depix will look for the real text; it will not find it, because nothing of it is in the pixels.
 
 ## Limits
 

@@ -30,7 +30,7 @@ Things DECOY does not protect you from: text elsewhere on the page that repeats 
 
 ## QA: attacking the output
 
-`tools/qa/depix-qa.mjs` is a maintainer's shell tool that runs [Depix](https://codeberg.org/spipm/Depixelization_poc), the standard pixelation-reversal tool, against DECOY's exports, next to plain pixelation of the same region for comparison. `mise run qa -- demo` draws a page with a secret in DECOY's own font, pixelates the secret the usual way, decoys the same box through the real app, and runs Depix on both cutouts with a search image rendered by the same browser engine. Depix reconstructs the secret from plain pixelation and finds nothing in the DECOY export. `tools/qa/README.md` has the pieces (`crop`, `pixelate`, `search-image`, `depix`) for attacking a real export and the tool's limits.
+`tools/qa/depix-qa.mjs` is a maintainer's shell tool that runs [Depix](https://codeberg.org/spipm/Depixelization_poc), the standard pixelation-reversal tool, against DECOY's exports, next to plain pixelation of the same region for comparison. `mise run qa -- demo` draws a page with a secret in DECOY's own font, pixelates the secret the usual way, decoys the same box through the real app, and runs Depix on both cutouts with a search image rendered by the same browser engine. Depix reconstructs the secret from plain pixelation and finds nothing in the DECOY export. `mise run qa:attack -- <file>` takes an exported PNG or PDF, finds every mosaic on every page by itself, and runs Depix on each. `tools/qa/README.md` has the pieces (`crop`, `pixelate`, `search-image`, `depix`) behind it and the tool's limits.
 
 ## Running it
 
@@ -86,6 +86,7 @@ The site is a plain static folder (`dist/`), so it can be served from anywhere. 
    ```
 
    `deploy/release.sh` checks this rule before it tags and refuses to release while it is missing.
+
 4. **First release:** push `main`, then run `mise run release` (the version starts at 0.0.0, so the first release is 0.1.0; pass `--major` for 1.0.0).
 
 ## Credits

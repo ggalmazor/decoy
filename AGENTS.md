@@ -22,11 +22,11 @@ DECOY is a fully client-side web app. There is no backend, no analytics, and no 
 
 Pixels inside a box never influence the output. A mosaic is a function of the decoy text, the box size, the block size, and the ink and paper colours, and it is written over the original with an opaque replace, never a blend. `src/core/security.test.ts` checks it; `src/core/mosaic.ts` and `src/core/raster.ts` have no path that reads the document. Keep it that way: if a change needs to look at the document, it belongs in sampling (`sampleInkPaper`), which only ever yields two colours.
 
-`tools/qa/` attacks the claim rather than asserting it: `mise run qa -- demo` runs Depix, the standard depixelizer, against a plain pixelation and against DECOY's export of the same secret. Run it when the mosaic or the export changes.
+`tools/qa/` attacks the claim rather than asserting it: `mise run qa -- demo` runs Depix, the standard depixelizer, against a plain pixelation and against DECOY's export of the same secret, and `mise run qa:attack -- <file>` finds every mosaic in an exported PNG or PDF and runs Depix on each. Run them when the mosaic or the export changes.
 
 ## Tooling
 
-Everything goes through mise (`mise.toml`): `mise run dev`, `build`, `preview`, `lint`, `typecheck`, `test`, `test:e2e`, `check` for all of CI, and `qa` for the Depix tool. Node 22 and uv are pinned there. `npm` is the package manager; there is no lockfile for anything else.
+Everything goes through mise (`mise.toml`): `mise run dev`, `build`, `preview`, `lint`, `typecheck`, `test`, `test:e2e`, `check` for all of CI, and `qa` and `qa:attack` for the Depix tool. Node 22 and uv are pinned there. `npm` is the package manager; there is no lockfile for anything else.
 
 - TypeScript is strict and `verbatimModuleSyntax`; use inline `type` imports.
 - ESLint is `typescript-eslint` type-checked; run `npm run lint` before committing. Prettier formats everything, 110 columns, single quotes.

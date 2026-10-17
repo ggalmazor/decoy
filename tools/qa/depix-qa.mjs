@@ -8,13 +8,14 @@
 //   mise run qa -- pixelate <image> <x,y,w,h> --block 8   plain box-filter pixelation of a region (the control)
 //   mise run qa -- search-image --height 24 [--chars ..]  De Bruijn search image in Courier Prime 700 at DECOY's size
 //   mise run qa -- depix <pixelated.png> <search.png>     run Depix (and its block detector) on a cutout
+//   mise run qa -- attack <export.png|export.pdf>         find every mosaic in an export and Depix each one
 //
 // Everything that draws text goes through headless Chromium against the built site, so the search image is
 // rendered by the same engine, font, and size DECOY itself uses: the most favourable conditions an attacker
 // could hope for. Outputs land in tmp/qa/. Needs: node, uv (mise installs both), and the build in dist/.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
@@ -168,7 +169,13 @@ async function ensureSite() {
 async function withPage(fn) {
   await ensureSite();
   const browser = await chromium.launch();
-  const page = await browser.newPage({ acceptDownloads: true, deviceScaleFactor: 1 });
+  // The site's service worker would answer fetches itself, hiding them from Playwright's routes and
+  // possibly serving a stale build; QA always talks to the server.
+  const page = await browser.newPage({
+    acceptDownloads: true,
+    deviceScaleFactor: 1,
+    serviceWorkers: 'block',
+  });
   await page.goto(SITE + '/');
   await page.evaluate(() => document.fonts.load('700 20px "Courier Prime"').then(() => document.fonts.ready));
   try {
@@ -241,8 +248,8 @@ function deBruijn(alphabet, order) {
 
 // Loads an image file into the page and returns a handle for cropping, snapping, and pixelating.
 const IMAGE_TOOLS = `
-  (async ({ base64 }) => {
-    const res = await fetch('data:image/png;base64,' + base64);
+  (async ({ base64, mime }) => {
+    const res = await fetch('data:' + mime + ';base64,' + base64);
     const bitmap = await createImageBitmap(await res.blob());
     const canvas = document.createElement('canvas');
     canvas.width = bitmap.width; canvas.height = bitmap.height;
@@ -291,6 +298,89 @@ const IMAGE_TOOLS = `
         c.getContext('2d').putImageData(ctx.getImageData(box.x, box.y, box.w, box.h), 0, 0);
         return c.toDataURL('image/png');
       },
+      // Mosaics are the only thing on a document page made of flat rectangles at least minBlock wide
+      // that are not the paper colour and that sit edge to edge on a grid. Each block's interior (the
+      // block minus its one-pixel rim, which borders other colours) is a connected run of identical
+      // pixels; those rectangles are grown back by a pixel, clustered when they touch, and a cluster is
+      // kept when it has enough rectangles and most of them share one size. Antialiased glyphs rarely
+      // have flat interiors this large, and a filled shape is a single rectangle, so both drop out.
+      findMosaics(minBlock) {
+        const key = (x, y) => { const i = (y * W + x) * 4; return (data[i] << 16) | (data[i + 1] << 8) | data[i + 2]; };
+        const counts = new Map();
+        const bump = (k) => counts.set(k, (counts.get(k) || 0) + 1);
+        for (let x = 0; x < W; x++) { bump(key(x, 0)); bump(key(x, H - 1)); }
+        for (let y = 0; y < H; y++) { bump(key(0, y)); bump(key(W - 1, y)); }
+        let paper = -1, best = -1;
+        for (const [k, c] of counts) if (c > best) { best = c; paper = k; }
+        const flat = new Uint8Array(W * H);
+        for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+          const k = key(x, y);
+          if (k === paper) continue;
+          if (key(x - 1, y) === k && key(x + 1, y) === k && key(x, y - 1) === k && key(x, y + 1) === k) flat[y * W + x] = 1;
+        }
+        const label = new Int32Array(W * H);
+        const rects = [];
+        const stack = [];
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const p = y * W + x;
+          if (!flat[p] || label[p]) continue;
+          const id = rects.length + 1;
+          let x0 = x, y0 = y, x1 = x, y1 = y, n = 0;
+          label[p] = id; stack.push(p);
+          while (stack.length) {
+            const q = stack.pop(); n++;
+            const qx = q % W, qy = (q - qx) / W;
+            if (qx < x0) x0 = qx; if (qx > x1) x1 = qx; if (qy < y0) y0 = qy; if (qy > y1) y1 = qy;
+            for (const r of [q - 1, q + 1, q - W, q + W]) {
+              if (r >= 0 && r < W * H && flat[r] && !label[r] && Math.abs((r % W) - qx) <= 1) { label[r] = id; stack.push(r); }
+            }
+          }
+          const w = x1 - x0 + 3, h = y1 - y0 + 3;
+          if (w >= minBlock && h >= minBlock && n >= 0.8 * (w - 2) * (h - 2)) rects.push({ x: x0 - 1, y: y0 - 1, w, h });
+        }
+        let regions = rects.map((r) => ({ ...r, parts: [r] }));
+        const gap = 2;
+        for (let merged = true; merged;) {
+          merged = false;
+          for (let i = 0; i < regions.length; i++) {
+            for (let j = i + 1; j < regions.length; j++) {
+              const a = regions[i], b = regions[j];
+              if (a.x <= b.x + b.w + gap && b.x <= a.x + a.w + gap && a.y <= b.y + b.h + gap && b.y <= a.y + a.h + gap) {
+                const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+                regions[i] = { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y, parts: a.parts.concat(b.parts) };
+                regions.splice(j, 1);
+                merged = true;
+                j--;
+              }
+            }
+          }
+        }
+        const mode = (values) => {
+          const m = new Map();
+          for (const v of values) m.set(v, (m.get(v) || 0) + 1);
+          return [...m.entries()].sort((p, q) => q[1] - p[1])[0][0];
+        };
+        return regions
+          .filter((r) => r.parts.length >= 6 && r.w >= 2 * minBlock && r.h >= 2 * minBlock)
+          .map((r) => {
+            const sizes = r.parts.flatMap((p) => [p.w, p.h]);
+            const block = mode(sizes);
+            const grid = sizes.filter((v) => Math.abs(v - block) <= 1 || Math.abs(v - 2 * block) <= 2).length / sizes.length;
+            const covered = r.parts.reduce((sum, p) => sum + p.w * p.h, 0) / (r.w * r.h);
+            return { x: r.x, y: r.y, w: r.w, h: r.h, blocks: r.parts.length, block, grid, covered };
+          })
+          .filter((r) => r.grid >= 0.5 && r.covered >= 0.3)
+          .sort((a, b) => a.y - b.y || a.x - b.x);
+      },
+      outline(regions) {
+        const c = document.createElement('canvas');
+        c.width = W; c.height = H;
+        const o = c.getContext('2d');
+        o.drawImage(canvas, 0, 0);
+        o.strokeStyle = '#ff2d55'; o.lineWidth = 2; o.font = '700 14px sans-serif'; o.fillStyle = '#ff2d55';
+        regions.forEach((r, i) => { o.strokeRect(r.x - 1, r.y - 1, r.w + 2, r.h + 2); o.fillText(String(i + 1), r.x, Math.max(14, r.y - 4)); });
+        return c.toDataURL('image/png');
+      },
       // Plain pixelation the way everyone does it and the way Depix expects: the integer mean of the
       // 0-255 channel values of each block, blocks anchored at the box origin.
       pixelate(box, block) {
@@ -314,8 +404,84 @@ const IMAGE_TOOLS = `
     return { w: W, h: H };
   })`;
 
+function sniffMime(bytes) {
+  if (bytes.subarray(0, 4).toString('latin1') === '%PDF') return 'application/pdf';
+  if (bytes[0] === 0xff && bytes[1] === 0xd8) return 'image/jpeg';
+  if (
+    bytes.subarray(0, 4).toString('latin1') === 'RIFF' &&
+    bytes.subarray(8, 12).toString('latin1') === 'WEBP'
+  )
+    return 'image/webp';
+  return 'image/png';
+}
+
 async function loadImage(page, buffer) {
-  return page.evaluate(`${IMAGE_TOOLS}(${JSON.stringify({ base64: buffer.toString('base64') })})`);
+  const mime = sniffMime(buffer);
+  return page.evaluate(`${IMAGE_TOOLS}(${JSON.stringify({ base64: buffer.toString('base64'), mime })})`);
+}
+
+// Renders every page of a PDF to a PNG with pdf.js, served to the page from node_modules under a path the
+// site's CSP allows (same origin). Image-only pages, which is what DECOY exports, are rendered at the pixel
+// size of the bitmap they carry, so the mosaic's blocks come out exactly as exported; other PDFs at 150 dpi.
+const PDF_TOOLS = `
+  (async ({ base64, scale, origin }) => {
+    const pdfjs = window.__pdfjs;
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const doc = await pdfjs.getDocument({
+      data: bytes, cMapUrl: origin + '/pdfjs/cmaps/', cMapPacked: true, standardFontDataUrl: origin + '/pdfjs/standard_fonts/',
+      iccUrl: origin + '/pdfjs/iccs/', wasmUrl: origin + '/pdfjs/wasm/', useWorkerFetch: false,
+    }).promise;
+    const pages = [];
+    for (let n = 1; n <= doc.numPages; n++) {
+      const page = await doc.getPage(n);
+      const base = page.getViewport({ scale: 1 });
+      let s = scale, native = null;
+      if (!s) {
+        const ops = await page.getOperatorList();
+        for (let i = 0; i < ops.fnArray.length && !native; i++) {
+          if (ops.fnArray[i] !== pdfjs.OPS.paintImageXObject) continue;
+          const img = await new Promise((done) => page.objs.get(ops.argsArray[i][0], done));
+          if (img && img.width) native = { w: img.width, h: img.height };
+        }
+        s = native ? native.w / base.width : 150 / 72;
+      }
+      const viewport = page.getViewport({ scale: s });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(viewport.width); canvas.height = Math.round(viewport.height);
+      await page.render({ canvas, viewport, background: '#ffffff' }).promise;
+      pages.push({ n, url: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height, scale: s, native });
+    }
+    return pages;
+  })`;
+
+async function renderPdf(page, bytes, scale) {
+  const build = resolve(ROOT, 'node_modules/pdfjs-dist/build');
+  await page.route(`${SITE}/qa-pdfjs/*`, (route) => {
+    const name = new URL(route.request().url()).pathname.split('/').pop();
+    // Playwright does not intercept a dedicated worker's own script request, so the worker is built from
+    // a blob of the source fetched here instead; the site's CSP allows blob: workers.
+    if (name === 'loader.mjs') {
+      return route.fulfill({
+        contentType: 'text/javascript',
+        body: [
+          "import * as pdfjs from './pdf.min.mjs';",
+          "const source = await (await fetch(new URL('./pdf.worker.min.mjs', import.meta.url))).text();",
+          "const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));",
+          "pdfjs.GlobalWorkerOptions.workerPort = new Worker(url, { type: 'module' });",
+          'window.__pdfjs = pdfjs;',
+        ].join('\n'),
+      });
+    }
+    const file = resolve(build, name);
+    if (!existsSync(file)) return route.fulfill({ status: 404 });
+    return route.fulfill({ contentType: 'text/javascript', body: readFileSync(file) });
+  });
+  await page.addScriptTag({ url: `${SITE}/qa-pdfjs/loader.mjs`, type: 'module' });
+  await page.waitForFunction(() => window.__pdfjs);
+  const pages = await page.evaluate(
+    `${PDF_TOOLS}(${JSON.stringify({ base64: bytes.toString('base64'), scale, origin: SITE })})`,
+  );
+  return pages.map((p) => ({ ...p, png: dataUrlToBuffer(p.url), url: undefined }));
 }
 
 // Drives the real app: open an image, box a region, apply the decoy, export the PNG.
@@ -443,6 +609,99 @@ async function cmdDepix() {
   log(`Output: ${out}`);
   openImage(out);
   return out;
+}
+
+async function cmdAttack() {
+  const [file] = positional;
+  if (!file)
+    die(
+      'usage: attack <export.png|.jpg|.webp|.pdf> [--page N] [--box x,y,w,h] [--block 4] [--height N] [--chars ..] [--font ..] [--px N] [--scale N]',
+    );
+  const path = resolve(file);
+  if (!existsSync(path)) die(`${file} does not exist`);
+  const bytes = readFileSync(path);
+  const mime = sniffMime(bytes);
+  const minBlock = Number(flags.block ?? 4);
+  const chars = flags.chars ?? DEFAULT_CHARS;
+  const order = Number(flags.order ?? 2);
+  const stem = basename(file).replace(/\.[^.]+$/, '');
+  const items = await withPage(async (page) => {
+    const pages =
+      mime === 'application/pdf'
+        ? await renderPdf(page, bytes, flags.scale ? Number(flags.scale) : 0)
+        : [{ n: 1, png: bytes }];
+    const found = [];
+    for (const p of pages) {
+      if (flags.page && Number(flags.page) !== p.n) continue;
+      const size = await loadImage(page, p.png);
+      if (p.native) {
+        log(
+          `Page ${p.n}: ${size.w}×${size.h}, rendered at the embedded image's size (scale ${p.scale.toFixed(3)})`,
+        );
+        writeFileSync(outPath(`${stem}-p${p.n}.png`), p.png);
+      } else if (mime === 'application/pdf') {
+        log(
+          `Page ${p.n}: ${size.w}×${size.h}, no single embedded image; rendered at scale ${p.scale.toFixed(3)}`,
+        );
+        writeFileSync(outPath(`${stem}-p${p.n}.png`), p.png);
+      } else {
+        log(`Image: ${size.w}×${size.h}`);
+      }
+      const regions = flags.box
+        ? [{ ...parseBox(flags.box), blocks: '?', block: '?' }]
+        : await page.evaluate((m) => window.__qa.findMosaics(m), minBlock);
+      if (!regions.length) {
+        log(`Page ${p.n}: no mosaic found (pass --box x,y,w,h to point at one, or a smaller --block)`);
+        continue;
+      }
+      const overview = outPath(`${stem}-p${p.n}-regions.png`);
+      writeFileSync(overview, dataUrlToBuffer(await page.evaluate((r) => window.__qa.outline(r), regions)));
+      log(`Page ${p.n}: ${regions.length} mosaic region(s), outlined in ${overview}`);
+      for (const [i, region] of regions.entries()) {
+        const tag = `${stem}-p${p.n}-r${i + 1}`;
+        const cut = outPath(`${tag}.png`);
+        writeFileSync(cut, dataUrlToBuffer(await page.evaluate((b) => window.__qa.crop(b), region)));
+        // The search image is drawn at the region's height: DECOY sizes its text from the box, so an
+        // attacker who assumes the box hugged the original line gets the font size for free.
+        const h = flags.height ? Number(flags.height) : region.h;
+        const search = outPath(`${tag}-search.png`);
+        writeFileSync(
+          search,
+          await renderText(page, deBruijn(chars, order), h, {
+            px: flags.px ? Number(flags.px) : undefined,
+            family: flags.font,
+            pad: 2,
+          }),
+        );
+        found.push({ page: p.n, index: i + 1, region, cut, search, overview });
+      }
+    }
+    return found;
+  });
+
+  if (!items.length) {
+    console.log('Nothing to attack. Files, if any, are in ' + OUT_DIR);
+    return;
+  }
+  console.log('');
+  for (const item of items) {
+    const r = item.region;
+    const out = outPath(`${stem}-p${item.page}-r${item.index}-depix.png`);
+    const summary = summariseDepix(runDepix(item.cut, item.search, out));
+    console.log(
+      `Page ${item.page} region ${item.index}: ${r.x},${r.y},${r.w},${r.h}; ${r.blocks} blocks of ~${r.block} px; Depix saw ${summary.blocks} blocks, ${summary.matches}`,
+    );
+    console.log(`   cutout ${item.cut}`);
+    console.log(`   Depix output ${out}`);
+    if (items.length <= 4) openImage(out);
+  }
+  console.log('');
+  console.log(
+    'Open each Depix output next to its cutout, zoomed. Legible text there would be a finding; averaged',
+  );
+  console.log(
+    `mush and coincidental matches are what a mosaic that never saw the original produces. Files: ${OUT_DIR}`,
+  );
 }
 
 async function cmdDemo() {
@@ -574,11 +833,12 @@ const commands = {
   crop: cmdCrop,
   pixelate: cmdPixelate,
   depix: cmdDepix,
+  attack: cmdAttack,
   demo: cmdDemo,
 };
 if (!command || !commands[command]) {
   console.error(
-    'usage: depix-qa.mjs <setup|demo|crop|pixelate|search-image|depix> [...]  (see the header of this file)',
+    'usage: depix-qa.mjs <setup|demo|attack|crop|pixelate|search-image|depix> [...]  (see the header of this file)',
   );
   process.exit(2);
 }

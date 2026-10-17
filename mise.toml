@@ -31,8 +31,12 @@ description = "Playwright smoke tests against a production build"
 run = "npm run test:e2e"
 
 [tasks.qa]
-description = "Attack an export with Depix: mise run qa -- demo | crop | pixelate | search-image | depix"
+description = "Attack an export with Depix: mise run qa -- demo | attack | crop | pixelate | search-image | depix"
 run = "node tools/qa/depix-qa.mjs"
+
+[tasks."qa:attack"]
+description = "Find every mosaic in an exported PNG or PDF and run Depix on it: mise run qa:attack -- <file>"
+run = "node tools/qa/depix-qa.mjs attack"
 
 [tasks.check]
 description = "Everything CI runs: lint, typecheck, unit tests, build, e2e"
