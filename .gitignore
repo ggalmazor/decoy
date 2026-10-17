@@ -11,3 +11,4 @@ e2e/output/
 .idea/
 .vscode/
 tmp/
+tools/qa/.depix/

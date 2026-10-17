@@ -28,6 +28,10 @@ The editor has move, resize (re-fits the phrase unless you lock it), nudge with 
 
 Things DECOY does not protect you from: text elsewhere on the page that repeats the secret, filenames, and the memory of whoever already saw the original.
 
+## QA: attacking the output
+
+`tools/qa/depix-qa.mjs` is a maintainer's shell tool that runs [Depix](https://codeberg.org/spipm/Depixelization_poc), the standard pixelation-reversal tool, against DECOY's exports, next to plain pixelation of the same region for comparison. `mise run qa -- demo` draws a page with a secret in DECOY's own font, pixelates the secret the usual way, decoys the same box through the real app, and runs Depix on both cutouts with a search image rendered by the same browser engine. Depix reconstructs the secret from plain pixelation and finds nothing in the DECOY export. `tools/qa/README.md` has the pieces (`crop`, `pixelate`, `search-image`, `depix`) for attacking a real export and the tool's limits.
+
 ## Running it
 
 Tools are managed with [mise](https://mise.jdx.dev) (`mise.toml` pins Node 22 and defines the tasks). Without mise, use Node 22 and `npm run <script>` directly.

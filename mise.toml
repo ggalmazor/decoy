@@ -1,5 +1,6 @@
 [tools]
 node = "22"
+uv = "0.11"
 
 [tasks.dev]
 description = "Start the Vite dev server"
@@ -28,6 +29,10 @@ run = "npm test"
 [tasks."test:e2e"]
 description = "Playwright smoke tests against a production build"
 run = "npm run test:e2e"
+
+[tasks.qa]
+description = "Attack an export with Depix: mise run qa -- demo | crop | pixelate | search-image | depix"
+run = "node tools/qa/depix-qa.mjs"
 
 [tasks.check]
 description = "Everything CI runs: lint, typecheck, unit tests, build, e2e"
