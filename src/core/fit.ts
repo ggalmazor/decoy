@@ -181,6 +181,18 @@ export function fitDecoy(options: FitOptions): FitResult {
     }
   }
 
+  // Nothing in the band but phrases that fit with room to spare: prefer the widest few of those over the
+  // two-letter fallbacks, so a 10-character box gets "lol no" rather than "nope".
+  if (candidates.length === 0) {
+    const roomy = singles
+      .filter((item) => item.ratio <= MAX_RATIO && item.ratio >= 0.5)
+      .sort((a, b) => b.ratio - a.ratio);
+    if (roomy.length > 0) {
+      const top = roomy[0].ratio;
+      candidates = roomy.filter((item) => item.ratio >= top - 0.1);
+    }
+  }
+
   if (candidates.length === 0) {
     const scoredFallbacks: Scored[] = fallbacks.map((phrase) => ({
       text: phrase.text,

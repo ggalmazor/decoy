@@ -104,6 +104,15 @@ describe('fit', () => {
     expect(result.ratio).toBeLessThanOrEqual(1);
   });
 
+  it('prefers a roomy real phrase over the fallbacks when nothing fits the band', () => {
+    // 188 x 35: 150 px available at 29 px (17.4 px per char), so 8.6 to 8.6 chars fit the band; nothing
+    // in the smug bank is exactly that, so the widest phrases that still fit win over "nope".
+    const result = fitDecoy(base(188, 35));
+    expect(result.best.length).toBeGreaterThanOrEqual(6);
+    expect(result.ratio).toBeLessThanOrEqual(1);
+    expect(result.ratio).toBeGreaterThan(0.6);
+  });
+
   it('falls back to the short words for tiny boxes', () => {
     const result = fitDecoy(base(40, 24));
     expect(['no', 'nope', 'lol', 'nah', 'no.']).toContain(result.best);

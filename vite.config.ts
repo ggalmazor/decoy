@@ -12,6 +12,10 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: false,
     assetsInlineLimit: 0,
+    chunkSizeWarningLimit: 1500,
+    rolldownOptions: {
+      input: { main: 'index.html', depix: 'depix.html' },
+    },
   },
   plugins: [pdfjsAssetsPlugin(), versionPlugin(), cspPlugin(), serviceWorkerPlugin()],
   server: {
