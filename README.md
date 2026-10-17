@@ -8,7 +8,7 @@ Live at **https://decoy.ggalmazor.com**. Nothing you open ever leaves the tab.
 
 A mosaic block is just the average colour of the pixels under it. Pixelation is lossy, but it is not random: the same text in the same font, pixelated the same way, gives the same blocks every time. A depixelizer uses exactly that. It renders guesses (every word in a dictionary, every eight-character string, every phrase it can think of) in the font it sees on the page, pixelates each one with the block size it measures, and keeps whichever matches the blocks best. Short, structured secrets such as passwords, PINs, and account numbers are the easiest targets, because the search space is small and the font is known.
 
-Blurring is no better; it is a different averaging kernel. The only redaction that cannot be reversed is one where the output carries no information about the input. A black bar does that. DECOY does that too, and is funnier: the box is filled from a decoy phrase, so the puzzle a depixelizer solves is a puzzle about the decoy. You can prove it to yourself with the [Enhance lab](#the-enhance-lab).
+Blurring is no better; it is a different averaging kernel. The only redaction that cannot be reversed is one where the output carries no information about the input. A black bar does that. DECOY does that too, and is funnier: the box is filled from a decoy phrase, so the puzzle a depixelizer solves is a puzzle about the decoy. `tools/qa/` holds a shell tool that runs an off-the-shelf depixelizer against DECOY's own exports; see [QA: attacking the output](#qa-attacking-the-output).
 
 ## What DECOY does
 
@@ -27,19 +27,6 @@ The editor has move, resize (re-fits the phrase unless you lock it), nudge with 
 - **Removed on export:** EXIF and every other chunk of the source image (re-encoding from a canvas drops them), and for PDFs the text layer, annotations, forms, attachments, and metadata, because the PDF is rebuilt from scratch out of page images rather than edited.
 
 Things DECOY does not protect you from: text elsewhere on the page that repeats the secret, filenames, and the memory of whoever already saw the original.
-
-## The Enhance lab
-
-`/depix.html` (also linked from the footer as "Try to break it") is the attack, in the open. Drop an export, box a mosaic, optionally type the real secret as a guess, and the lab renders every phrase DECOY knows (plus your guesses) with the same font and size DECOY would use for that box, pixelates each one with the same block edges, and ranks them by how closely they match. The winner is a decoy phrase; the real secret ranks nowhere, because nothing of it is in the pixels.
-
-The same thing from the command line, against a running preview server:
-
-```sh
-npm run preview &
-node scripts/depix.mjs path/to/export.png 260,270,300,24 --guess 'Summer2026!' --cell auto
-```
-
-`e2e/depix.spec.ts` runs this loop in CI: decoy a box, export, feed the export back with the secret among the guesses, and assert that the decoy wins.
 
 ## Running it
 
@@ -68,7 +55,7 @@ mise run check        # all of the above, in CI order
 ## How it is built
 
 - **Vite 8 + TypeScript (strict) + Preact with signals.** Preact was chosen over vanilla TS and Lit because the settings panel is a dense set of derived values (fit ratio, capacity, alternatives, status label, meter) that re-render on every keystroke, drag, and reroll; signals express that as a handful of `computed`s with no manual DOM bookkeeping, at about 4 kB. The canvas itself is imperative (pointer events and a compositing effect); Preact only owns the chrome around it.
-- `src/core/` is pure and unit-tested: `rng` (mulberry32, plus the reference LCG for mosaic jitter), `phrases` (four moods as data with an explicit `profane` flag, templates expanded to over 40 lines per mood), `fit` (font size `0.82·h`, candidates at 85–100 % of `w − 4`, ranked by closeness to 95 % with seeded noise so rerolls vary; two phrases joined for long boxes, chains for longer, short fallbacks for tiny ones), `mosaic` (`blockDarkness`, `mosaicCells`, `rasterizeCells` with integer block edges at `round(c·w/cols)`, a port of `design/mockups/mosaic.js` kept honest by an oracle test), `sample` (paper = mean above the 60th luma percentile, ink = mean below the 5th, fallback ink `#17140F`), `geometry`, `history`, `grawlix`, and `depix`.
+- `src/core/` is pure and unit-tested: `rng` (mulberry32, plus the reference LCG for mosaic jitter), `phrases` (four moods as data with an explicit `profane` flag, templates expanded to over 40 lines per mood), `fit` (font size `0.82·h`, candidates at 85–100 % of `w − 4`, ranked by closeness to 95 % with seeded noise so rerolls vary; two phrases joined for long boxes, chains for longer, short fallbacks for tiny ones), `mosaic` (`blockDarkness`, `mosaicCells`, `rasterizeCells` with integer block edges at `round(c·w/cols)`, a port of `design/mockups/mosaic.js` kept honest by an oracle test), `sample` (paper = mean above the 60th luma percentile, ink = mean below the 5th, fallback ink `#17140F`), `geometry`, `history`, and `grawlix`.
 - `src/render/` rasterises the decoy phrase in Courier Prime 700 and caches each mosaic bitmap by its parameters. `src/doc/` loads images with `createImageBitmap` and PDFs with pdf.js at 150 dpi, and exports with canvas re-encoding and pdf-lib.
 - Build-time Vite plugins (`scripts/vite-*.ts`) inject the CSP into the built HTML only (dev HMR needs inline scripts), copy pdf.js's `cmaps/`, `standard_fonts/`, `iccs/`, and `wasm/` under `/pdfjs/`, emit `version.json`, and generate `sw.js` with the exact list of built assets to precache.
 - Profanity is never printed in plain on the website. Everything that displays a phrase goes through `grawlix()`, which keeps the first letter and swaps the vowels for comic-book symbols (`f@ck`). The mosaic always uses the real phrase.

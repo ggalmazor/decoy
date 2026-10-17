@@ -10,3 +10,4 @@ e2e/output/
 .env
 .idea/
 .vscode/
+tmp/

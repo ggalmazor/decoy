@@ -4,25 +4,24 @@ DECOY is a fully client-side web app. There is no backend, no analytics, and no 
 
 ## Layout
 
-| Path           | What lives there                                                                   | Rules                                                                                   |
-| -------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `design/`      | The design kit: spec, copy deck, tokens, screenshots, reference mockups, fonts     | Source of truth for look and copy. Never load fonts from anywhere else.                 |
-| `src/core/`    | Pure logic: rng, phrases, fit, mosaic, sampling, geometry, history, grawlix, depix | Framework-free, no DOM. Everything here has Vitest coverage.                            |
-| `src/render/`  | Text rasterisation and the mosaic bitmap cache                                     | The only place that touches a canvas to produce a mosaic.                               |
-| `src/doc/`     | Loading images and PDFs, flattening and export                                     | pdf.js assets are served from `/pdfjs/`; see `scripts/vite-pdfjs-assets.ts`.            |
-| `src/ui/`      | Preact components: landing, editor, export dialog                                  | State is a set of signals in `state.ts`; mutations are plain functions in `actions.ts`. |
-| `src/tools/`   | The Enhance lab (`/depix.html`)                                                    | The attacker's side, kept honest by `e2e/depix.spec.ts`.                                |
-| `src/styles/`  | CSS, starting from `design/tokens.css`                                             | Square corners, hard shadows, one accent colour.                                        |
-| `scripts/`     | Vite plugins, fixture generator, screenshot and depix CLIs                         |                                                                                         |
-| `e2e/`         | Playwright smoke tests and their fixtures                                          | Run against the production build.                                                       |
-| `deploy/`      | Merge and release scripts                                                          | See "Merge, release, and deploy".                                                       |
-| `changelog.d/` | One changelog fragment per branch                                                  | See `changelog.d/README.md`.                                                            |
+| Path           | What lives there                                                               | Rules                                                                                   |
+| -------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `design/`      | The design kit: spec, copy deck, tokens, screenshots, reference mockups, fonts | Source of truth for look and copy. Never load fonts from anywhere else.                 |
+| `src/core/`    | Pure logic: rng, phrases, fit, mosaic, sampling, geometry, history, grawlix    | Framework-free, no DOM. Everything here has Vitest coverage.                            |
+| `src/render/`  | Text rasterisation and the mosaic bitmap cache                                 | The only place that touches a canvas to produce a mosaic.                               |
+| `src/doc/`     | Loading images and PDFs, flattening and export                                 | pdf.js assets are served from `/pdfjs/`; see `scripts/vite-pdfjs-assets.ts`.            |
+| `src/ui/`      | Preact components: landing, editor, export dialog                              | State is a set of signals in `state.ts`; mutations are plain functions in `actions.ts`. |
+| `src/styles/`  | CSS, starting from `design/tokens.css`                                         | Square corners, hard shadows, one accent colour.                                        |
+| `scripts/`     | Vite plugins, fixture generator, screenshot CLI                                |                                                                                         |
+| `e2e/`         | Playwright smoke tests and their fixtures                                      | Run against the production build.                                                       |
+| `deploy/`      | Merge and release scripts                                                      | See "Merge, release, and deploy".                                                       |
+| `changelog.d/` | One changelog fragment per branch                                              | See `changelog.d/README.md`.                                                            |
 
 ## The property every change must keep
 
 Pixels inside a box never influence the output. A mosaic is a function of the decoy text, the box size, the block size, and the ink and paper colours, and it is written over the original with an opaque replace, never a blend. `src/core/security.test.ts` checks it; `src/core/mosaic.ts` and `src/core/raster.ts` have no path that reads the document. Keep it that way: if a change needs to look at the document, it belongs in sampling (`sampleInkPaper`), which only ever yields two colours.
 
-The Enhance lab exists so this claim can be attacked rather than asserted. When the mosaic changes, run `npm run test:e2e` and, if you want to see it, `node scripts/depix.mjs` against an export.
+`tools/qa/` attacks the claim rather than asserting it: it runs Depix, an off-the-shelf depixelizer, against DECOY's own exports. Run it when the mosaic changes.
 
 ## Tooling
 
@@ -30,7 +29,7 @@ Everything goes through mise (`mise.toml`): `mise run dev`, `build`, `preview`, 
 
 - TypeScript is strict and `verbatimModuleSyntax`; use inline `type` imports.
 - ESLint is `typescript-eslint` type-checked; run `npm run lint` before committing. Prettier formats everything, 110 columns, single quotes.
-- Vitest covers `src/core`. Playwright (`e2e/`) covers loading, boxing, exporting PNG and PDF, the shortcuts, and the Enhance lab, against `vite preview` on port 4173.
+- Vitest covers `src/core`. Playwright (`e2e/`) covers loading, boxing, exporting PNG and PDF, and the shortcuts, against `vite preview` on port 4173.
 - Visual checks: `node scripts/screenshots.mjs` writes desktop and 390px screenshots of the landing page and editor to `e2e/output/shots/` from a running dev server. Compare them with `design/screens/`.
 
 ## Copy and profanity
