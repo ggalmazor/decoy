@@ -126,39 +126,6 @@ function runDepix(pixelated, search, output, { average = 'gammacorrected', backg
   return `${result.stdout}\n${result.stderr}`;
 }
 
-function runShowBoxes(pixelated, search, output) {
-  ensureDepix();
-  const script = resolve(DEPIX_DIR, 'tool_show_boxes.py');
-  try {
-    execFileSync(
-      'uv',
-      [
-        'run',
-        '--quiet',
-        '--python',
-        '3.12',
-        '--with',
-        'pillow',
-        'python',
-        script,
-        '-p',
-        pixelated,
-        '-s',
-        search,
-        '-o',
-        output,
-      ],
-      {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env, PYTHONPATH: DEPIX_DIR },
-      },
-    );
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function summariseDepix(stderrAndOut) {
   const lines = stderrAndOut.split('\n');
   const found = lines.find((l) => /Found \d+ same color rectangles/.test(l));
@@ -310,6 +277,14 @@ const IMAGE_TOOLS = `
         const x = xs[0], y = ys[0], w = xs[xs.length - 1] - x, h = ys[ys.length - 1] - y;
         return w >= 4 && h >= 4 ? { x, y, w, h } : box;
       },
+      // Rows and columns of a box that carry ink (luma below 128), so a cutout can hug the glyphs.
+      inkExtent(box) {
+        let x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+        for (let y = box.y; y < box.y + box.h; y++) for (let x = box.x; x < box.x + box.w; x++) {
+          if (luma(x, y) < 128) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+        }
+        return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+      },
       crop(box) {
         const c = document.createElement('canvas');
         c.width = box.w; c.height = box.h;
@@ -459,7 +434,6 @@ async function cmdDepix() {
       'usage: depix <pixelated.png> <search.png> [--average linear|gammacorrected] [--background r,g,b] [--out path]',
     );
   const out = flags.out ?? outPath('depix-output.png');
-  const boxes = out.replace(/\.png$/, '-boxes.png');
   const text = runDepix(resolve(pixelated), resolve(search), out, {
     average: flags.average,
     background: flags.background,
@@ -467,7 +441,6 @@ async function cmdDepix() {
   const summary = summariseDepix(text);
   log(`Depix saw ${summary.blocks} blocks; result ${summary.matches}`);
   log(`Output: ${out}`);
-  if (runShowBoxes(resolve(pixelated), resolve(search), boxes)) log(`Block detection: ${boxes}`);
   openImage(out);
   return out;
 }
@@ -525,7 +498,17 @@ async function cmdDemo() {
       },
       { px, secret },
     );
-    const box = { x: Math.floor(40 + 2 + advance) - 2, y: lineY, w: Math.ceil(secretWidth) + 4, h };
+    // The box hugs the glyphs and spans whole blocks only. Depix's block detector merges neighbouring
+    // blocks of identical colour and trips over partial blocks, so a blank row at the bottom or a sliver
+    // at the edge can hide most of the mosaic from it. (The real app has no such constraint; this is
+    // about giving Depix its best shot at the plain pixelation.)
+    const whole = (n) => Math.ceil(n / block) * block;
+    const loose = { x: Math.floor(40 + 2 + advance) - 2, y: lineY, w: Math.ceil(secretWidth) + 4, h };
+    await loadImage(page, pagePng);
+    const ink = await page.evaluate((b) => window.__qa.inkExtent(b), loose);
+    const box = ink
+      ? { x: ink.x - 1, y: ink.y - 1, w: whole(ink.w + 2), h: whole(ink.h + 2) }
+      : { ...loose, w: whole(loose.w), h: whole(loose.h) };
 
     // 2. The search image: a De Bruijn sequence in the same font, size, and vertical placement.
     const searchText = deBruijn(chars, order);
@@ -533,7 +516,6 @@ async function cmdDemo() {
     writeFileSync(search, await renderText(page, searchText, h, { pad: 2 }));
 
     // 3. Plain pixelation of the secret, the way everyone does it.
-    await loadImage(page, pagePng);
     const plain = outPath('demo-plain-pixelated.png');
     writeFileSync(
       plain,
@@ -560,11 +542,9 @@ async function cmdDemo() {
 
   const plainOut = outPath('demo-plain-depix.png');
   const a = summariseDepix(runDepix(result.plain, result.search, plainOut));
-  runShowBoxes(result.plain, result.search, plainOut.replace(/\.png$/, '-boxes.png'));
 
   const decoyOut = outPath('demo-decoy-depix.png');
   const b = summariseDepix(runDepix(result.decoyCrop, result.search, decoyOut));
-  runShowBoxes(result.decoyCrop, result.search, decoyOut.replace(/\.png$/, '-boxes.png'));
 
   console.log('');
   console.log(`Plain pixelation (block ${block}):  ${a.blocks} blocks, ${a.matches}`);
