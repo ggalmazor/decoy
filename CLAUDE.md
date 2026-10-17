@@ -1,0 +1,1 @@
+See [AGENTS.md](AGENTS.md) for the design and process guidance: where things live, the security property every change must keep, commit hygiene, changelog fragments, and how merging and releasing work.
