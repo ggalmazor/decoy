@@ -13,8 +13,10 @@ on:
 permissions:
   contents: read
 
+# Keyed on the calling workflow as well as the ref: Deploy and Publish both call this on the same tag,
+# and must not cancel each other.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
