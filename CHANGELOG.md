@@ -4,6 +4,11 @@ All notable, user-visible changes to DECOY. The format follows [Keep a Changelog
 
 ## [Unreleased]
 
+## [1.2.0]
+
+### Added
+- The landing page announces the command line and MCP server in a new "Agents" band, with the install line and the three tools.
+
 ## [1.1.0]
 
 ### Added
