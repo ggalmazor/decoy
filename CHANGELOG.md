@@ -4,6 +4,11 @@ All notable, user-visible changes to DECOY. The format follows [Keep a Changelog
 
 ## [Unreleased]
 
+## [1.3.1]
+
+### Changed
+- The README is written for users of the CLI and MCP server: install, commands and options, agent setup, how it works, limits. Maintainer notes moved to `docs/development.md`.
+
 ## [1.3.0]
 
 ### Added
