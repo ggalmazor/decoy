@@ -13,7 +13,8 @@
 # on main's tip after syncing with origin, so the number can only be computed against the real tip.
 #
 # The v<version> tag triggers .github/workflows/deploy.yml, which builds the site, publishes it to GitHub
-# Pages, and checks that https://decoy.ggalmazor.com/version.json reports the new version.
+# Pages, and checks that https://decoy.ggalmazor.com/version.json reports the new version, and
+# .github/workflows/publish.yml, which publishes the CLI to npm as @ggalmazor/decoy at the same version.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -94,20 +95,31 @@ advance_main "$(git rev-parse HEAD)"
 release_main_lock
 
 if [[ "$WAIT" == "yes" ]] && command -v gh >/dev/null 2>&1; then
-    echo "==> Waiting for the Deploy workflow"
+    REPO_SLUG="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
     # Selected by the tag it was triggered from, not by being the newest run: a re-run, or a second
     # release started around the same time, would otherwise be the one watched.
-    RUN_ID=""
-    for _ in $(seq 1 20); do
-        RUN_ID="$(gh run list --workflow Deploy --branch "$TAG" --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-        [[ -n "$RUN_ID" ]] && break
-        sleep 3
-    done
-    [[ -n "$RUN_ID" ]] || die "No Deploy run appeared for ${TAG} within a minute. Check the Actions tab."
-    gh run watch "$RUN_ID" --exit-status --interval 15 >/dev/null \
-        || die "The Deploy run for ${TAG} failed: https://github.com/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/actions/runs/${RUN_ID}
-${TAG} is on origin. Fix the cause, then re-run that workflow from the Actions tab (workflow_dispatch) or push a fix and release again."
-    echo "==> ${SITE_URL} is serving ${VERSION}"
+    run_for_tag() {
+        local workflow="$1" run_id=""
+        for _ in $(seq 1 20); do
+            run_id="$(gh run list --workflow "$workflow" --branch "$TAG" --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+            [[ -n "$run_id" ]] && break
+            sleep 3
+        done
+        [[ -n "$run_id" ]] || die "No ${workflow} run appeared for ${TAG} within a minute. Check the Actions tab."
+        echo "$run_id"
+    }
+    echo "==> Waiting for the Deploy and Publish workflows"
+    DEPLOY_RUN="$(run_for_tag Deploy)"
+    PUBLISH_RUN="$(run_for_tag Publish)"
+    FAILED=""
+    gh run watch "$DEPLOY_RUN" --exit-status --interval 15 >/dev/null \
+        || FAILED="${FAILED}Deploy failed: https://github.com/${REPO_SLUG}/actions/runs/${DEPLOY_RUN}
+"
+    gh run watch "$PUBLISH_RUN" --exit-status --interval 15 >/dev/null \
+        || FAILED="${FAILED}Publish failed: https://github.com/${REPO_SLUG}/actions/runs/${PUBLISH_RUN}
+"
+    [[ -z "$FAILED" ]] || die "${FAILED}${TAG} is on origin. Fix the cause, then re-run that workflow from the Actions tab (workflow_dispatch) or push a fix and release again."
+    echo "==> ${SITE_URL} is serving ${VERSION} and npm has @ggalmazor/decoy@${VERSION}"
 else
-    echo "==> Tagged ${TAG}; the Deploy workflow will publish it to ${SITE_URL}"
+    echo "==> Tagged ${TAG}; the Deploy and Publish workflows will put it on ${SITE_URL} and npm"
 fi

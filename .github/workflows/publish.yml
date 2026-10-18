@@ -1,0 +1,93 @@
+# Publishes @ggalmazor/decoy (the CLI and MCP server) to npm from the same v<version> tag that deploys the
+# site, independently of the Pages deploy so one cannot block the other.
+#
+# Two ways to authenticate, checked in this order:
+#   1. An NPM_TOKEN repository secret (a granular access token with publish rights). Works for the very
+#      first publish, when the package does not exist yet.
+#   2. npm trusted publishing (OIDC): no secret at all, once a trusted publisher pointing at this workflow
+#      is configured on npmjs.com for the package. Needs npm 11.5 or later, hence the npm upgrade step.
+# A version that is already on the registry is skipped, so a re-run or a second tag is harmless.
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Read the version and check it against the tag
+        id: version
+        run: |
+          DECLARED="$(node -p "require('./package.json').version")"
+          NAME="$(node -p "require('./package.json').name")"
+          echo "version=${DECLARED}" >> "$GITHUB_OUTPUT"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$DECLARED" != "${GITHUB_REF_NAME#v}" ]; then
+            echo "Tag says ${GITHUB_REF_NAME#v} but package.json says ${DECLARED}." >&2
+            exit 1
+          fi
+
+      - name: Skip a version that is already published
+        id: registry
+        run: |
+          if npm view "${{ steps.version.outputs.name }}@${{ steps.version.outputs.version }}" version >/dev/null 2>&1; then
+            echo "${{ steps.version.outputs.name }}@${{ steps.version.outputs.version }} is already on npm"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pick the authentication
+        id: auth
+        if: steps.registry.outputs.published == 'false'
+        run: echo "token=${{ secrets.NPM_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
+      - run: npm install -g npm@latest
+        if: steps.registry.outputs.published == 'false'
+
+      - run: npm ci
+        if: steps.registry.outputs.published == 'false'
+
+      - run: npm test
+        if: steps.registry.outputs.published == 'false'
+
+      - name: Publish with the NPM_TOKEN secret
+        if: steps.registry.outputs.published == 'false' && steps.auth.outputs.token == 'true'
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish with trusted publishing
+        if: steps.registry.outputs.published == 'false' && steps.auth.outputs.token == 'false'
+        run: npm publish --provenance --access public
+
+      - name: Verify the registry serves the version
+        run: |
+          SPEC="${{ steps.version.outputs.name }}@${{ steps.version.outputs.version }}"
+          for attempt in $(seq 1 20); do
+            if LIVE="$(npm view "$SPEC" version 2>/dev/null)" && [ "$LIVE" = "${{ steps.version.outputs.version }}" ]; then
+              echo "npm serves ${SPEC}"
+              exit 0
+            fi
+            echo "not visible yet; waiting"
+            sleep 15
+          done
+          echo "npm never served ${SPEC}" >&2
+          exit 1

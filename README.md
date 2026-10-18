@@ -117,7 +117,7 @@ The site is a plain static folder (`dist/`), so it can be served from anywhere. 
    `deploy/release.sh` checks this rule before it tags and refuses to release while it is missing.
 
 4. **First release:** push `main`, then run `mise run release` (the version starts at 0.0.0, so the first release is 0.1.0; pass `--major` for 1.0.0).
-5. **npm:** the first publish is by hand, `npm login` then `npm publish`, which runs `build:cli` first. Then, on npmjs.com under the package's settings, add a trusted publisher for GitHub Actions (repository `ggalmazor/decoy`, workflow `deploy.yml`), and set the repository variable `NPM_PUBLISH` to `true`. From then on every release the Deploy workflow publishes the same version to npm with provenance, no token needed.
+5. **npm:** `.github/workflows/publish.yml` publishes `@ggalmazor/decoy` on the same tag. For the first release add a repository secret `NPM_TOKEN` (a granular access token from npmjs.com with publish rights for the package or the `@ggalmazor` scope, allowed to bypass 2FA). Once the package exists you can switch to trusted publishing: on npmjs.com, under the package's settings, add GitHub Actions as a trusted publisher with repository `ggalmazor/decoy` and workflow `publish.yml`, then delete the secret. Either way every release puts the site and the package out at the same version, with provenance.
 
 ## Credits
 
