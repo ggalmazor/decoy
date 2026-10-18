@@ -1,5 +1,6 @@
 import type { Decoy, DecoyPages } from '../core/model';
 import { buildMosaic } from '../render/mosaic';
+import { assemblePdf, type AssembledPage } from './pdf-assemble';
 import type { LoadedDocument, Page } from './types';
 
 export type ExportFormat = 'pdf' | 'png' | 'clipboard';
@@ -9,7 +10,7 @@ export interface ExportOptions {
   watermark: boolean;
 }
 
-export const PRODUCER = 'DECOY';
+export { PRODUCER } from './pdf-assemble';
 
 function drawWatermark(ctx: CanvasRenderingContext2D, width: number, height: number): void {
   const px = Math.max(9, Math.round(Math.min(width, height) / 90));
@@ -98,31 +99,22 @@ export async function buildPdf(
   decoys: DecoyPages,
   options: ExportOptions,
 ): Promise<Uint8Array> {
-  // Loaded on demand: pdf-lib is 200 kB that only a PDF export needs.
-  const { PDFDocument } = await import('pdf-lib');
-  const out = await PDFDocument.create({ updateMetadata: false });
   const photographic = doc.kind === 'image' && doc.mime === 'image/jpeg';
+  const pages: AssembledPage[] = [];
   for (const page of doc.pages) {
     const canvas = flattenPage(page, decoys[page.index] ?? [], options);
     const blob = photographic
       ? await canvasToBlob(canvas, 'image/jpeg', 0.92)
       : await canvasToBlob(canvas, 'image/png');
-    const bytes = new Uint8Array(await blob.arrayBuffer());
-    const image = photographic ? await out.embedJpg(bytes) : await out.embedPng(bytes);
-    const size = page.points ?? { w: (page.width * 72) / 150, h: (page.height * 72) / 150 };
-    const pdfPage = out.addPage([size.w, size.h]);
-    pdfPage.drawImage(image, { x: 0, y: 0, width: size.w, height: size.h });
+    pages.push({
+      bytes: new Uint8Array(await blob.arrayBuffer()),
+      kind: photographic ? 'jpeg' : 'png',
+      width: page.width,
+      height: page.height,
+      points: page.points,
+    });
   }
-  out.setTitle('');
-  out.setAuthor('');
-  out.setSubject('');
-  out.setKeywords([]);
-  out.setCreator('');
-  out.setProducer(PRODUCER);
-  if (!options.stripMetadata) {
-    out.setTitle(baseName(doc.name));
-  }
-  return out.save({ useObjectStreams: true });
+  return assemblePdf(pages, { title: options.stripMetadata ? null : baseName(doc.name) });
 }
 
 export async function exportPdf(

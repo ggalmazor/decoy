@@ -1,4 +1,5 @@
 import { availableWidth, fontSizeFor } from '../core/fit';
+import { canvasFactory, type TextContext } from './backend';
 
 export const DECOY_FONT_FAMILY = '"Courier Prime", "Courier New", Courier, monospace';
 
@@ -6,23 +7,23 @@ function font(px: number): string {
   return `700 ${px}px ${DECOY_FONT_FAMILY}`;
 }
 
-type Canvas2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-
-function makeCanvas(w: number, h: number): { canvas: HTMLCanvasElement | OffscreenCanvas; ctx: Canvas2D } {
+function makeCanvas(w: number, h: number): { ctx: TextContext } {
+  const factory = canvasFactory();
+  if (factory) return { ctx: factory(w, h) };
   if (typeof OffscreenCanvas !== 'undefined') {
     const canvas = new OffscreenCanvas(w, h);
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (ctx) return { canvas, ctx };
+    if (ctx) return { ctx };
   }
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('2D canvas is not available');
-  return { canvas, ctx };
+  return { ctx };
 }
 
-let measureCtx: Canvas2D | null = null;
+let measureCtx: TextContext | null = null;
 const widthCache = new Map<string, number>();
 
 export function measureText(text: string, px: number): number {
@@ -42,7 +43,7 @@ let fontsPromise: Promise<void> | null = null;
 // The measure cache is only valid once the real font is in; fallbacks have different advances.
 export function decoyFontReady(): Promise<void> {
   fontsPromise ??= (async () => {
-    if (typeof document === 'undefined' || !document.fonts?.load) return;
+    if (canvasFactory() || typeof document === 'undefined' || !document.fonts?.load) return;
     try {
       await document.fonts.load(font(20));
       await document.fonts.ready;

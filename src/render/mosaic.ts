@@ -39,14 +39,18 @@ function canvasFor(imageData: ImageData): HTMLCanvasElement | OffscreenCanvas {
   return canvas;
 }
 
+export interface MosaicPixels {
+  readonly data: Uint8ClampedArray;
+  readonly w: number;
+  readonly h: number;
+}
+
 // The whole mosaic is a function of the spec: text, box size, block size, ink, and paper. The document is
-// not an input, which is what makes caching by spec safe and the security property hold.
-export function buildMosaic(spec: MosaicSpec): MosaicBitmap {
+// not an input, which is what makes caching by spec safe and the security property hold. This is the
+// environment-free part; buildMosaic wraps it for the browser.
+export function mosaicPixels(spec: MosaicSpec): MosaicPixels {
   const w = Math.max(1, Math.round(spec.w));
   const h = Math.max(1, Math.round(spec.h));
-  const key = keyOf({ ...spec, w, h });
-  const hit = cache.get(key);
-  if (hit) return hit;
   const coverage = coverageFromRgba(rasterizeText(spec.text, w, h), w, h);
   const data = mosaicFromCoverage(coverage, {
     w,
@@ -56,6 +60,14 @@ export function buildMosaic(spec: MosaicSpec): MosaicBitmap {
     paper: parseHex(spec.paper, PAPER_FALLBACK),
     seed: mosaicSeed(spec.text),
   });
+  return { data, w, h };
+}
+
+export function buildMosaic(spec: MosaicSpec): MosaicBitmap {
+  const key = keyOf({ ...spec, w: Math.max(1, Math.round(spec.w)), h: Math.max(1, Math.round(spec.h)) });
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const { data, w, h } = mosaicPixels(spec);
   const imageData = new ImageData(data as Uint8ClampedArray<ArrayBuffer>, w, h);
   const bitmap: MosaicBitmap = { data, w, h, imageData, canvas: canvasFor(imageData) };
   if (cache.size >= CACHE_LIMIT) {
