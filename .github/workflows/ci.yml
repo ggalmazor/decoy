@@ -1,4 +1,6 @@
-# Lint, typecheck, unit tests, build, and the Playwright smoke tests, on every push and pull request.
+# Lint, typecheck, unit tests, both builds, and the Playwright smoke tests, on every push and pull
+# request. Deploy and Publish call this same workflow as their first job, so a release tag never ships
+# anything these checks did not pass on that exact commit.
 name: CI
 
 on:
@@ -6,6 +8,7 @@ on:
     branches: ['**']
     tags-ignore: ['v*']
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
@@ -35,6 +38,8 @@ jobs:
       - run: npm test
 
       - run: npm run build
+
+      - run: npm run build:cli
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium

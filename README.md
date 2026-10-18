@@ -103,7 +103,7 @@ The site is a plain static folder (`dist/`), so it can be served from anywhere. 
 - A branch adds a `changelog.d/<branch>.md` fragment and never touches the version or `CHANGELOG.md`.
 - `mise run merge <branch>` merges into `main` under a lock, runs the full suite in a merge-queue worktree, and pushes `main`.
 - `mise run release` folds the fragments into `CHANGELOG.md`, writes the version to `package.json`, commits `Release X.Y.Z`, and pushes the commit with its `vX.Y.Z` tag.
-- The tag triggers `.github/workflows/deploy.yml`, which checks the tag against `package.json`, builds, publishes to Pages with `actions/upload-pages-artifact` and `actions/deploy-pages`, and waits until `https://decoy.ggalmazor.com/version.json` reports the new version. `.github/workflows/ci.yml` runs lint, typecheck, unit, build, and e2e on every push and pull request.
+- The tag triggers `.github/workflows/deploy.yml`, which checks the tag against `package.json`, builds, publishes to Pages with `actions/upload-pages-artifact` and `actions/deploy-pages`, and waits until `https://decoy.ggalmazor.com/version.json` reports the new version. `.github/workflows/ci.yml` runs lint, typecheck, unit tests, both builds, and e2e on every push and pull request, and both the Deploy and Publish workflows run it first on the tagged commit before doing anything.
 
 ### One-time setup
 

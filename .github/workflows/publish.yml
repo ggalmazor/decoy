@@ -6,7 +6,8 @@
 #      first publish, when the package does not exist yet.
 #   2. npm trusted publishing (OIDC): no secret at all, once a trusted publisher pointing at this workflow
 #      is configured on npmjs.com for the package. Needs npm 11.5 or later, hence the npm upgrade step.
-# A version that is already on the registry is skipped, so a re-run or a second tag is harmless.
+# A version that is already on the registry is skipped, so a re-run or a second tag is harmless. The
+# publisher on npmjs.com must allow "npm publish" (not only "npm stage publish") for this workflow.
 name: Publish
 
 on:
@@ -20,7 +21,12 @@ permissions:
   id-token: write
 
 jobs:
+  # The full CI suite on the tagged commit. The package is not published unless it passes.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   publish:
+    needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -63,9 +69,6 @@ jobs:
         if: steps.registry.outputs.published == 'false'
 
       - run: npm ci
-        if: steps.registry.outputs.published == 'false'
-
-      - run: npm test
         if: steps.registry.outputs.published == 'false'
 
       - name: Publish with the NPM_TOKEN secret

@@ -1,4 +1,4 @@
-# Builds the static site and deploys it to GitHub Pages at decoy.ggalmazor.com.
+# Runs CI on the tagged commit, builds the static site, and deploys it to GitHub Pages at decoy.ggalmazor.com.
 #
 # The trigger is a `v<version>` git tag rather than a push to main. The version in package.json is what the
 # footer shows and what /version.json reports, and a deploy is verified by comparing the two, so a release
@@ -22,7 +22,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # The full CI suite on the tagged commit. Nothing below runs unless it passes.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -53,12 +58,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-
-      - run: npm run lint
-
-      - run: npm run typecheck
-
-      - run: npm test
 
       - run: npm run build
 
