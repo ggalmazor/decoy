@@ -7,6 +7,7 @@ import { loadDocument } from './document';
 import { serveMcp } from './mcp';
 import { parseBoxArg } from './redact';
 import { runFind, runRedact } from './run';
+import { checkForUpdate, describeUpdate } from './update';
 import { verifyOutput } from './verify';
 
 const VERSION = typeof __DECOY_VERSION__ === 'string' ? __DECOY_VERSION__ : '0.0.0-dev';
@@ -162,6 +163,18 @@ program
     } catch (error) {
       fail(error);
     }
+  });
+
+program
+  .command('update')
+  .description(
+    'ask the npm registry whether a newer version exists (the only network request decoy ever makes)',
+  )
+  .action(async () => {
+    const report = await checkForUpdate(VERSION);
+    if (program.opts().json) console.log(JSON.stringify(report, null, 2));
+    else console.log(describeUpdate(report));
+    process.exit(report.error ? 1 : 0);
   });
 
 program

@@ -40,10 +40,11 @@ decoy find invoice.pdf -m 'ES\d{2}( ?\d{4}){5}'  # only the matches
 decoy redact invoice.pdf -m 'ES\d{2}( ?\d{4}){5}' -m '[\w.+-]+@[\w-]+\.[\w.]+' --mood corporate
 decoy redact screenshot.png -b 120,340,260,32   # images have no text layer: boxes are x,y,w,h[@page]
 decoy verify invoice-decoyed.pdf -m 'ES\d{2}( ?\d{4}){5}' --original invoice.pdf
-decoy mcp                                       # find_text, redact, and verify as MCP tools over stdio
+decoy update                                    # is there a newer version? The only network call decoy makes
+decoy mcp                                       # find_text, redact, verify, and check_update as MCP tools over stdio
 ```
 
-`redact` covers every match of every `-m` pattern (a JavaScript regular expression, matched per line so a number split at spaces still matches) and every `-b` box with a decoy, then writes `<name>-decoyed.pdf` or `.png` next to the input. `--mood`, `--clean`, `--cell`, `--seed`, `--text`, and `--watermark` are the panel's controls; `--json` on any command returns machine-readable output. `verify` proves what an agent can prove about a file it did not watch being made: a PDF has no text layer and no metadata, no pattern is still readable, and, given `--original`, only the matched boxes changed.
+`redact` covers every match of every `-m` pattern (a JavaScript regular expression, matched per line so a number split at spaces still matches) and every `-b` box with a decoy, then writes `<name>-decoyed.pdf` or `.png` next to the input. `--mood`, `--clean`, `--cell`, `--seed`, `--text`, and `--watermark` are the panel's controls; `--json` on any command returns machine-readable output. `verify` proves what an agent can prove about a file it did not watch being made: a PDF has no text layer and no metadata, no pattern is still readable, and, given `--original`, only the matched boxes changed. `update` is the one command that touches the network: a single request to the npm registry for the latest version, made only when you (or an agent, through the `check_update` tool) ask for it.
 
 For agents, `skills/decoy-redact/SKILL.md` is a ready-made skill (copy it into `.claude/skills/` or `~/.claude/skills/`), and the MCP server plugs into any client:
 

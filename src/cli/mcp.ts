@@ -5,6 +5,7 @@ import { MOODS } from '../core/phrases';
 import { MAX_CELL, MIN_CELL } from '../core/mosaic';
 import { loadDocument } from './document';
 import { runFind, runRedact, type RedactRequest } from './run';
+import { checkForUpdate } from './update';
 import { verifyOutput } from './verify';
 
 const moodSchema = z.enum(MOODS as unknown as [string, ...string[]]);
@@ -136,6 +137,26 @@ export async function serveMcp(version: string): Promise<void> {
             original,
           }),
         );
+      } catch (error) {
+        return failure(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    'check_update',
+    {
+      title: 'Check for a newer decoy',
+      description:
+        'Asks registry.npmjs.org for the latest published version of @ggalmazor/decoy and compares it with the ' +
+        'running one. This is the only network request decoy ever makes, and it happens only when this tool is ' +
+        'called; nothing about the user or their files is sent. Returns installed, latest, updateAvailable, and ' +
+        'the install command.',
+      inputSchema: {},
+    },
+    async () => {
+      try {
+        return json(await checkForUpdate(version));
       } catch (error) {
         return failure(error);
       }

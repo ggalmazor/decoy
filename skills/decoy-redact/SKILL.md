@@ -38,9 +38,13 @@ description: Redact PDFs and images on the local machine by covering secrets wit
 - A box hides what is under it, but its size still says how long the secret was. Widen boxes to the field when that matters.
 - Ink and paper colours are sampled around the box so the mosaic blends in; nothing else of the original is read.
 
+## Staying current
+
+`decoy update` (or the `check_update` MCP tool) asks the npm registry once whether a newer version exists and prints the install command. It is the only network request decoy makes and it never runs on its own. Check at the start of a redaction job when the operator allows network access; otherwise skip it and say so.
+
 ## MCP
 
-The same three operations are MCP tools (`find_text`, `redact`, `verify`) when the server is configured:
+The same operations are MCP tools (`find_text`, `redact`, `verify`, `check_update`) when the server is configured:
 
 ```sh
 claude mcp add decoy -- npx -y @ggalmazor/decoy mcp
