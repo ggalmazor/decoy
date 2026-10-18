@@ -4,6 +4,15 @@ All notable, user-visible changes to DECOY. The format follows [Keep a Changelog
 
 ## [Unreleased]
 
+## [1.1.0]
+
+### Added
+- A command line and MCP server, published as `@ggalmazor/decoy`: `decoy find` lists a PDF's text with boxes, `decoy redact` covers pattern matches and explicit boxes with decoys, `decoy verify` checks an output, and `decoy mcp` serves the three as tools. Same core as the site, nothing leaves the machine.
+- `skills/decoy-redact/SKILL.md`, a skill agents can load to redact documents with the CLI.
+
+### Changed
+- The landing page footer carries the copyright notice and a link to ggalmazor.com.
+
 ## [1.0.0]
 
 ### Added

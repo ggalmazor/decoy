@@ -1,6 +1,6 @@
 {
   "name": "@ggalmazor/decoy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Redaction that paints a pixelated decoy phrase over the secret instead of pixelating the secret. Web app, CLI, and MCP server; everything runs on your machine.",
   "keywords": [
     "redaction",
