@@ -376,6 +376,88 @@
   padding: 1px 6px;
 }
 
+.agents {
+  padding-top: 104px;
+  padding-bottom: 104px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
+  gap: 48px 64px;
+  align-items: start;
+}
+
+.agents__head {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.agents__lead {
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 540px;
+  text-wrap: pretty;
+}
+
+.agents__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.agents__tools {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: 20px;
+}
+
+.agents__tool {
+  border-top: 4px solid var(--ink);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agents__tool code {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.agents__tool p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* The terminal is ink on purpose: it is the one place on the page that is not paper, which says "this
+   runs somewhere else" without a screenshot. Red is kept off it, as on every dark ground. */
+.terminal {
+  margin: 0;
+  background: var(--ink);
+  color: #d8cfbf;
+  border: var(--border);
+  box-shadow: var(--shadow-paper);
+  padding: 22px 24px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-x: auto;
+  tab-size: 4;
+}
+
+.terminal code {
+  font: inherit;
+  white-space: pre;
+}
+
+.terminal__cmd {
+  color: var(--on-dark);
+  font-weight: 600;
+}
+
 .how {
   display: flex;
   flex-direction: column;
@@ -566,11 +648,17 @@
   }
 
   .why,
+  .agents,
   .how,
   .moods,
   .faq {
     padding-top: 72px;
     padding-bottom: 72px;
+  }
+
+  .terminal {
+    font-size: 12px;
+    padding: 16px;
   }
 
   .demo__row > span:first-child {

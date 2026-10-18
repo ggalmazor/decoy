@@ -44,6 +44,7 @@ export function Landing() {
         <Logo />
         <nav class="landing__nav" aria-label="Main">
           <a href="#why">Why</a>
+          <a href="#agents">Agents</a>
           <a href="#how">How it works</a>
           <a href="#moods">Moods</a>
           <a href="#faq">FAQ</a>
@@ -214,6 +215,63 @@ export function Landing() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="agents" class="band band--paper">
+        <div class="band__inner agents">
+          <div class="agents__head">
+            <p class="eyebrow">
+              <span class="tag tag--accent">New</span>
+              <span>Also a command line and an MCP server</span>
+            </p>
+            <h2 class="display section-title">Agents welcome. Uploads still aren’t.</h2>
+            <p class="agents__lead">
+              Point Claude Code, Cursor or your own agent at DECOY and it finds the IBAN, covers it with an
+              insult and proves the file is clean. Same core as this page, same rule: nothing is sent
+              anywhere, because there is nowhere to send it.
+            </p>
+            <div class="agents__actions">
+              <a class="btn btn--shadow" href={`${REPO}#command-line-and-agents`}>
+                Read the docs
+              </a>
+              <a class="btn btn--outline" href="https://www.npmjs.com/package/@ggalmazor/decoy">
+                @ggalmazor/decoy on npm
+              </a>
+            </div>
+            <ul class="agents__tools">
+              <li class="agents__tool">
+                <code>find_text</code>
+                <p>Every line of the PDF with its box. The agent reads first, then decides.</p>
+              </li>
+              <li class="agents__tool">
+                <code>redact</code>
+                <p>Patterns become boxes, boxes become decoys. One flattened file comes back.</p>
+              </li>
+              <li class="agents__tool">
+                <code>verify</code>
+                <p>No text layer, no metadata, nothing changed outside the boxes. Proof, not a promise.</p>
+              </li>
+            </ul>
+          </div>
+          <pre class="terminal" aria-label="Terminal session">
+            <code>
+              <span class="terminal__cmd">
+                $ claude mcp add --scope user decoy -- npx -y @ggalmazor/decoy mcp
+              </span>
+              {'\n'}
+              <span class="terminal__cmd">
+                $ decoy redact invoice.pdf -m 'ES\d{'{2}'}( ?\d{'{4}'}){'{5}'}'
+              </span>
+              {
+                '\npage 1  924,322 240×37  "ES91 2100 0418 4502 0005 1332"\n        -> "per my last email: no"\nwrote invoice-decoyed.pdf\n'
+              }
+              <span class="terminal__cmd">$ decoy verify invoice-decoyed.pdf --original invoice.pdf</span>
+              {
+                '\nok   no text layer: every page is image-only\nok   metadata cleared\nok   page 1 untouched elsewhere: identical to the original\nverified'
+              }
+            </code>
+          </pre>
         </div>
       </section>
 

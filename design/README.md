@@ -46,9 +46,10 @@ A classified file that talks back. Manila folder ground with faint ruled lines, 
 ### 1. Landing (`landing-desktop.png`, `landing-mobile.png`)
 - Fluid page with content up to 1240px wide and a gutter of `clamp(16px, 4vw, 32px)`. Every grid collapses to one column on a phone with no horizontal scroll.
 - Sections, in order:
-  1. Header: logo and nav (Why, How it works, Moods, FAQ), plus an "Open a file" ink button with a red shadow.
+  1. Header: logo and nav (Why, Agents, How it works, Moods, FAQ), plus an "Open a file" ink button with a red shadow.
   2. Hero: the copy and drop zone on the left, the rotated demo document on the right.
   3. Dark "Why" band with the two comparison cards. The DECOY card has a 4px red outline.
+  3b. Paper "Agents" band: copy, two buttons and the three tool names on the left, an ink terminal block on the right. Added with the CLI and MCP server in 1.2; not in the original mockups.
   4. Four steps.
   5. Moods grid on a paper band. Each mood card shows two live mosaics with a "decodes to" caption.
   6. FAQ in a two-column grid.
