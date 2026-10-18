@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-cli
 design
 public/pdfjs
 test-results
@@ -7,3 +8,4 @@ playwright-report
 e2e/fixtures
 package-lock.json
 CHANGELOG.md
+.vitest

@@ -1,14 +1,35 @@
 {
-  "name": "decoy",
+  "name": "@ggalmazor/decoy",
   "version": "1.0.0",
-  "private": true,
-  "description": "Client-side redaction that paints a pixelated decoy phrase over the secret instead of pixelating the secret.",
+  "description": "Redaction that paints a pixelated decoy phrase over the secret instead of pixelating the secret. Web app, CLI, and MCP server; everything runs on your machine.",
+  "keywords": [
+    "redaction",
+    "pdf",
+    "pixelation",
+    "privacy",
+    "mcp",
+    "cli"
+  ],
   "type": "module",
   "license": "MIT",
   "homepage": "https://decoy.ggalmazor.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ggalmazor/decoy.git"
+  },
+  "bin": {
+    "decoy": "dist-cli/decoy.mjs"
+  },
+  "files": [
+    "dist-cli",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "vite",
@@ -20,13 +41,20 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run build:cli && npm run test:e2e",
+    "build:cli": "vite build -c vite.cli.config.ts",
+    "cli": "node dist-cli/decoy.mjs",
+    "prepack": "npm run build:cli"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@napi-rs/canvas": "^1.0.11",
     "@preact/signals": "^2.11.3",
+    "commander": "^15.0.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.4.299",
-    "preact": "^11.0.1"
+    "preact": "^11.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -14,6 +14,14 @@ run = "npm run build"
 description = "Serve the built site from dist/"
 run = "npm run preview"
 
+[tasks."build:cli"]
+description = "Build the command-line tool and MCP server into dist-cli/"
+run = "npm run build:cli"
+
+[tasks.cli]
+description = "Run the built CLI: mise run cli -- redact <file> --match <regex>"
+run = "node dist-cli/decoy.mjs"
+
 [tasks.lint]
 description = "ESLint and Prettier check"
 run = "npm run lint"
@@ -39,7 +47,7 @@ description = "Find every mosaic in an exported PNG or PDF and run Depix on it: 
 run = "node tools/qa/depix-qa.mjs attack"
 
 [tasks.check]
-description = "Everything CI runs: lint, typecheck, unit tests, build, e2e"
+description = "Everything CI runs: lint, typecheck, unit tests, both builds, e2e"
 run = "npm run check"
 
 # Merge and release tasks. Every one of them is safe to run from several sessions at once: they share a

@@ -5,7 +5,16 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default defineConfig([
-  globalIgnores(['dist/', 'node_modules/', 'design/', 'public/', 'test-results/', 'playwright-report/']),
+  globalIgnores([
+    'dist/',
+    'dist-cli/',
+    'tmp/',
+    'node_modules/',
+    'design/',
+    'public/',
+    'test-results/',
+    'playwright-report/',
+  ]),
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
@@ -36,6 +45,10 @@ export default defineConfig([
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
+  },
+  {
+    files: ['src/cli/**/*.ts'],
+    languageOptions: { globals: globals.node },
   },
   prettier,
 ]);

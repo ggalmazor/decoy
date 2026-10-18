@@ -28,6 +28,35 @@ The editor has move, resize (re-fits the phrase unless you lock it), nudge with 
 
 Things DECOY does not protect you from: text elsewhere on the page that repeats the secret, filenames, and the memory of whoever already saw the original.
 
+## Command line and agents
+
+The same core runs in Node for scripts and agents. The package is [`@ggalmazor/decoy`](https://www.npmjs.com/package/@ggalmazor/decoy); it installs a `decoy` command and an MCP server, and like the site it never sends a byte anywhere.
+
+```sh
+npm install -g @ggalmazor/decoy                 # or prefix each call with: npx -y @ggalmazor/decoy
+
+decoy find invoice.pdf                          # every line of text with its box, in page pixels at 150 dpi
+decoy find invoice.pdf -m 'ES\d{2}( ?\d{4}){5}'  # only the matches
+decoy redact invoice.pdf -m 'ES\d{2}( ?\d{4}){5}' -m '[\w.+-]+@[\w-]+\.[\w.]+' --mood corporate
+decoy redact screenshot.png -b 120,340,260,32   # images have no text layer: boxes are x,y,w,h[@page]
+decoy verify invoice-decoyed.pdf -m 'ES\d{2}( ?\d{4}){5}' --original invoice.pdf
+decoy mcp                                       # find_text, redact, and verify as MCP tools over stdio
+```
+
+`redact` covers every match of every `-m` pattern (a JavaScript regular expression, matched per line so a number split at spaces still matches) and every `-b` box with a decoy, then writes `<name>-decoyed.pdf` or `.png` next to the input. `--mood`, `--clean`, `--cell`, `--seed`, `--text`, and `--watermark` are the panel's controls; `--json` on any command returns machine-readable output. `verify` proves what an agent can prove about a file it did not watch being made: a PDF has no text layer and no metadata, no pattern is still readable, and, given `--original`, only the matched boxes changed.
+
+For agents, `skills/decoy-redact/SKILL.md` is a ready-made skill (copy it into `.claude/skills/` or `~/.claude/skills/`), and the MCP server plugs into any client:
+
+```sh
+claude mcp add decoy -- npx -y @ggalmazor/decoy mcp
+```
+
+```json
+{ "mcpServers": { "decoy": { "command": "npx", "args": ["-y", "@ggalmazor/decoy", "mcp"] } } }
+```
+
+The CLI is built with `mise run build:cli` into `dist-cli/`, from the same `src/core` the site uses; `src/cli/` holds the Node side (pdf.js with a Node canvas, the text search, and the MCP server).
+
 ## QA: attacking the output
 
 `tools/qa/depix-qa.mjs` is a maintainer's shell tool that runs [Depix](https://codeberg.org/spipm/Depixelization_poc), the standard pixelation-reversal tool, against DECOY's exports, next to plain pixelation of the same region for comparison. `mise run qa -- demo` draws a page with a secret in DECOY's own font, pixelates the secret the usual way, decoys the same box through the real app, and runs Depix on both cutouts with a search image rendered by the same browser engine. Depix reconstructs the secret from plain pixelation and finds nothing in the DECOY export. `mise run qa:attack -- <file>` takes an exported PNG or PDF, finds every mosaic on every page by itself, and runs Depix on each. `tools/qa/README.md` has the pieces (`crop`, `pixelate`, `search-image`, `depix`) behind it and the tool's limits.
@@ -88,6 +117,7 @@ The site is a plain static folder (`dist/`), so it can be served from anywhere. 
    `deploy/release.sh` checks this rule before it tags and refuses to release while it is missing.
 
 4. **First release:** push `main`, then run `mise run release` (the version starts at 0.0.0, so the first release is 0.1.0; pass `--major` for 1.0.0).
+5. **npm:** the first publish is by hand, `npm login` then `npm publish`, which runs `build:cli` first. Then, on npmjs.com under the package's settings, add a trusted publisher for GitHub Actions (repository `ggalmazor/decoy`, workflow `deploy.yml`), and set the repository variable `NPM_PUBLISH` to `true`. From then on every release the Deploy workflow publishes the same version to npm with provenance, no token needed.
 
 ## Credits
 

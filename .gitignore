@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-cli/
 coverage/
 test-results/
 playwright-report/
@@ -12,3 +13,4 @@ e2e/output/
 .vscode/
 tmp/
 tools/qa/.depix/
+.vitest/

@@ -4,19 +4,21 @@ DECOY is a fully client-side web app. There is no backend, no analytics, and no 
 
 ## Layout
 
-| Path           | What lives there                                                               | Rules                                                                                   |
-| -------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `design/`      | The design kit: spec, copy deck, tokens, screenshots, reference mockups, fonts | Source of truth for look and copy. Never load fonts from anywhere else.                 |
-| `src/core/`    | Pure logic: rng, phrases, fit, mosaic, sampling, geometry, history, grawlix    | Framework-free, no DOM. Everything here has Vitest coverage.                            |
-| `src/render/`  | Text rasterisation and the mosaic bitmap cache                                 | The only place that touches a canvas to produce a mosaic.                               |
-| `src/doc/`     | Loading images and PDFs, flattening and export                                 | pdf.js assets are served from `/pdfjs/`; see `scripts/vite-pdfjs-assets.ts`.            |
-| `src/ui/`      | Preact components: landing, editor, export dialog                              | State is a set of signals in `state.ts`; mutations are plain functions in `actions.ts`. |
-| `src/styles/`  | CSS, starting from `design/tokens.css`                                         | Square corners, hard shadows, one accent colour.                                        |
-| `scripts/`     | Vite plugins, fixture generator, screenshot CLI                                |                                                                                         |
-| `e2e/`         | Playwright smoke tests and their fixtures                                      | Run against the production build.                                                       |
-| `tools/qa/`    | Depix-based QA of the security claim                                           | Maintainer's shell tool; see its README. `mise run qa -- demo`.                         |
-| `deploy/`      | Merge and release scripts                                                      | See "Merge, release, and deploy".                                                       |
-| `changelog.d/` | One changelog fragment per branch                                              | See `changelog.d/README.md`.                                                            |
+| Path           | What lives there                                                                 | Rules                                                                                    |
+| -------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `design/`      | The design kit: spec, copy deck, tokens, screenshots, reference mockups, fonts   | Source of truth for look and copy. Never load fonts from anywhere else.                  |
+| `src/core/`    | Pure logic: rng, phrases, fit, mosaic, sampling, geometry, history, grawlix      | Framework-free, no DOM. Everything here has Vitest coverage.                             |
+| `src/render/`  | Text rasterisation and the mosaic bitmap cache                                   | The only place that touches a canvas to produce a mosaic.                                |
+| `src/doc/`     | Loading images and PDFs, flattening and export                                   | pdf.js assets are served from `/pdfjs/`; see `scripts/vite-pdfjs-assets.ts`.             |
+| `src/ui/`      | Preact components: landing, editor, export dialog                                | State is a set of signals in `state.ts`; mutations are plain functions in `actions.ts`.  |
+| `src/styles/`  | CSS, starting from `design/tokens.css`                                           | Square corners, hard shadows, one accent colour.                                         |
+| `scripts/`     | Vite plugins, fixture generator, screenshot CLI                                  |                                                                                          |
+| `e2e/`         | Playwright smoke tests and their fixtures                                        | Run against the production build.                                                        |
+| `src/cli/`     | The `decoy` command and MCP server: pdf.js on a Node canvas, text search, verify | Node only; shares `src/core`, `src/render`, and `src/doc/pdf-assemble.ts` with the site. |
+| `skills/`      | Agent skill describing the CLI workflow                                          | Keep in step with `src/cli/main.ts`.                                                     |
+| `tools/qa/`    | Depix-based QA of the security claim                                             | Maintainer's shell tool; see its README. `mise run qa -- demo`.                          |
+| `deploy/`      | Merge and release scripts                                                        | See "Merge, release, and deploy".                                                        |
+| `changelog.d/` | One changelog fragment per branch                                                | See `changelog.d/README.md`.                                                             |
 
 ## The property every change must keep
 
@@ -26,7 +28,7 @@ Pixels inside a box never influence the output. A mosaic is a function of the de
 
 ## Tooling
 
-Everything goes through mise (`mise.toml`): `mise run dev`, `build`, `preview`, `lint`, `typecheck`, `test`, `test:e2e`, `check` for all of CI, and `qa` and `qa:attack` for the Depix tool. Node 22 and uv are pinned there. `npm` is the package manager; there is no lockfile for anything else.
+Everything goes through mise (`mise.toml`): `mise run dev`, `build`, `preview`, `lint`, `typecheck`, `test`, `test:e2e`, `check` for all of CI, `build:cli` and `cli` for the command line, and `qa` and `qa:attack` for the Depix tool. Node 22 and uv are pinned there. `npm` is the package manager; there is no lockfile for anything else.
 
 - TypeScript is strict and `verbatimModuleSyntax`; use inline `type` imports.
 - ESLint is `typescript-eslint` type-checked; run `npm run lint` before committing. Prettier formats everything, 110 columns, single quotes.
@@ -55,6 +57,7 @@ mise run next-version            # what the next release would be called
 
 - **`deploy/merge.sh <branch>`** takes a lock shared by every writer of `main`, merges the branch in a merge-queue worktree (`../worktrees/merge-queue`), runs `npm ci`, lint, typecheck, unit tests, the build, and the e2e suite, and only then fast-forwards `main` and pushes it. `--quick` skips the build and e2e for a branch already proven green; `--no-push` leaves `main` local. A branch that moved the version line gets `main`'s version back. If verification fails, `main` did not move.
 - **`deploy/release.sh`** takes the same lock, syncs the queue worktree with `origin/main`, folds the pending `changelog.d` fragments into `CHANGELOG.md`, writes the version to `package.json`, commits `Release X.Y.Z`, and pushes that commit and its `vX.Y.Z` tag atomically. The bump is PATCH when every fragment is `### Fixed` only and MINOR otherwise; `--major`, `--minor`, and `--patch` override it, and `--allow-empty` releases internal changes. With nothing pending and `main` already tagged it does nothing.
+- **The tag publishes too.** After the site is verified live, the same workflow publishes `@ggalmazor/decoy` to npm with provenance when the repository variable `NPM_PUBLISH` is `true` (see the README's one-time setup). The CLI and the site always share a version.
 - **The tag deploys.** `.github/workflows/deploy.yml` runs on `v*` tags, refuses a tag that disagrees with `package.json`, builds, publishes `dist/` to GitHub Pages, and polls `https://decoy.ggalmazor.com/version.json` until it reports the released version. `release.sh` waits for that run (`--no-wait` to skip). `workflow_dispatch` re-deploys the current ref by hand; the deploy job verifies against the version in `package.json`, not the ref name, so a dispatch from `main` passes too. The `github-pages` environment must allow `v*` tags (see the README's one-time setup); `release.sh` checks that before it tags.
 - **`.github/workflows/ci.yml`** runs the same checks as `merge.sh` on every push and pull request, so a branch is usually green before it is merged.
 - Versions count up from the highest of `package.json`, the newest `v*` tag, and the live `/version.json`, so a number is never handed out twice.
