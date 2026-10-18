@@ -4,6 +4,11 @@ All notable, user-visible changes to DECOY. The format follows [Keep a Changelog
 
 ## [Unreleased]
 
+## [1.3.0]
+
+### Added
+- `decoy update` and the `check_update` MCP tool ask the npm registry whether a newer version exists. It runs only when asked and is the only network request decoy makes.
+
 ## [1.2.0]
 
 ### Added
