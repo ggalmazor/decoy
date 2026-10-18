@@ -232,7 +232,7 @@ export function Landing() {
               anywhere, because there is nowhere to send it.
             </p>
             <div class="agents__actions">
-              <a class="btn btn--shadow" href={`${REPO}#command-line-and-agents`}>
+              <a class="btn btn--shadow" href={`${REPO}#commands`}>
                 Read the docs
               </a>
               <a class="btn btn--outline" href="https://www.npmjs.com/package/@ggalmazor/decoy">
